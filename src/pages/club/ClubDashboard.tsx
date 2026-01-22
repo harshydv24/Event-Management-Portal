@@ -36,7 +36,7 @@ const ClubDashboard: React.FC = () => {
   const { user } = useAuth();
   const [club, setClub] = useState<Club | null>(null);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
-  const [newMember, setNewMember] = useState({ name: '', uid: '', branch: '', year: '' });
+  const [newMember, setNewMember] = useState({ name: '', uid: '', branch: '', year: '', designation: '' });
 
   useEffect(() => {
     let existingClub = clubs.find(c => c.id === user?.clubId);
@@ -257,33 +257,48 @@ const ClubDashboard: React.FC = () => {
                   <DialogDescription>Enter the details of the new team member.</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Name</Label>
-                    <Input id="name" value={newMember.name} onChange={(e) => setNewMember({...newMember, name: e.target.value})} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="name">Name *</Label>
+                      <Input id="name" placeholder="Enter full name" value={newMember.name} onChange={(e) => setNewMember({...newMember, name: e.target.value})} />
+                    </div>
+                    <div>
+                      <Label htmlFor="uid">UID *</Label>
+                      <Input id="uid" placeholder="Enter university ID" value={newMember.uid} onChange={(e) => setNewMember({...newMember, uid: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="branch">Branch *</Label>
+                      <Input id="branch" placeholder="e.g. CSE, ECE" value={newMember.branch} onChange={(e) => setNewMember({...newMember, branch: e.target.value})} />
+                    </div>
+                    <div>
+                      <Label htmlFor="year">Year *</Label>
+                      <Input id="year" placeholder="e.g. 1st, 2nd" value={newMember.year} onChange={(e) => setNewMember({...newMember, year: e.target.value})} />
+                    </div>
                   </div>
                   <div>
-                    <Label htmlFor="uid">UID</Label>
-                    <Input id="uid" value={newMember.uid} onChange={(e) => setNewMember({...newMember, uid: e.target.value})} />
-                  </div>
-                  <div>
-                    <Label htmlFor="branch">Branch</Label>
-                    <Input id="branch" value={newMember.branch} onChange={(e) => setNewMember({...newMember, branch: e.target.value})} />
-                  </div>
-                  <div>
-                    <Label htmlFor="year">Year</Label>
-                    <Input id="year" value={newMember.year} onChange={(e) => setNewMember({...newMember, year: e.target.value})} />
+                    <Label htmlFor="designation">Designation *</Label>
+                    <Input id="designation" placeholder="e.g. Secretary, Events Head" value={newMember.designation} onChange={(e) => setNewMember({...newMember, designation: e.target.value})} />
                   </div>
                 </div>
                 <DialogFooter>
                   <Button onClick={() => {
-                    if (newMember.name && newMember.uid && newMember.branch && newMember.year) {
+                    if (newMember.name && newMember.uid && newMember.branch && newMember.year && newMember.designation) {
                       const member = {
                         id: crypto.randomUUID(),
                         name: newMember.name,
-                        designation: `${newMember.uid} - ${newMember.branch} ${newMember.year}`,
+                        designation: newMember.designation,
+                        branch: newMember.branch,
+                        year: newMember.year,
                       };
-                      updateClub(club.id, { coreTeam: [...club.coreTeam, member] });
-                      setNewMember({ name: '', uid: '', branch: '', year: '' });
+                      const updatedCoreTeam = [...club.coreTeam, member];
+                      updateClub(club.id, { coreTeam: updatedCoreTeam });
+                      setClub(prevClub => {
+                        if (!prevClub) return null;
+                        return { ...prevClub, coreTeam: updatedCoreTeam };
+                      });
+                      setNewMember({ name: '', uid: '', branch: '', year: '', designation: '' });
                       setIsAddMemberOpen(false);
                     }
                   }}>Add Member</Button>
@@ -297,7 +312,9 @@ const ClubDashboard: React.FC = () => {
               maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)"
             }}
           >
-            <div className="flex gap-6 whitespace-nowrap animate-scroll group-hover:[animation-play-state:paused]">
+            <div className="flex gap-6 whitespace-nowrap animate-scroll group-hover:[animation-play-state:paused]"
+                 key={club.coreTeam.length} // Force re-render when coreTeam changes
+            >
 
               {(club.coreTeam && club.coreTeam.length > 0
                 ? [...club.coreTeam, ...club.coreTeam]
@@ -334,6 +351,11 @@ const ClubDashboard: React.FC = () => {
                       <Badge variant="outline" className="text-[10px] tracking-wide px-2 py-[1px]">
                         {m.designation}
                       </Badge>
+                      {(m.branch || m.year) && (
+                        <div className="text-[11px] text-slate-600 mt-1 font-medium">
+                          {m.branch && m.year ? `${m.branch} ${m.year}` : m.branch || m.year}
+                        </div>
+                      )}
                     </div>
                   </Card>
                 );

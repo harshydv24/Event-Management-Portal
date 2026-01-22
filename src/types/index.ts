@@ -13,6 +13,8 @@ export interface ClubMember {
   id: string;
   name: string;
   designation: string;
+  branch?: string;
+  year?: string;
   photo?: string;
   isPresident?: boolean;
   isFacultyAdvisor?: boolean;

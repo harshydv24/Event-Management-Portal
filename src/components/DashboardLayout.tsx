@@ -16,8 +16,6 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-// dadawdawddddd
-
 const roleConfig = {
   student: {
     icon: GraduationCap,
