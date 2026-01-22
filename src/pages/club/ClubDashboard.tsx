@@ -16,12 +16,18 @@ import {
 import { Link } from 'react-router-dom';
 import { Club } from '@/types';
 import { format } from 'date-fns';
+// raushan
 
 const monthLabel = (date: string) => format(new Date(date), 'MMM yyyy');
 
 
 //Lets try this
-// raushan
+<<<<<<< HEAD
+
+=======
+// Here I come yayayaya ----Rishabh@lol
+
+>>>>>>> 0b3637aa89d879645e5e556600988da8712428f5
 
 
 
