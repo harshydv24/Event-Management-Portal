@@ -11,18 +11,32 @@ import {
   Trophy,
   TrendingUp,
   ChevronRight,
-  Clock
+  Clock,
+  Pencil
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Club } from '@/types';
 import { format } from 'date-fns';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const monthLabel = (date: string) => format(new Date(date), 'MMM yyyy');
 
 const ClubDashboard: React.FC = () => {
-  const { events, clubs, createClub } = useEvents();
+  const { events, clubs, createClub, updateClub } = useEvents();
   const { user } = useAuth();
   const [club, setClub] = useState<Club | null>(null);
+  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
+  const [newMember, setNewMember] = useState({ name: '', uid: '', branch: '', year: '' });
 
   useEffect(() => {
     let existingClub = clubs.find(c => c.id === user?.clubId);
@@ -221,57 +235,62 @@ const ClubDashboard: React.FC = () => {
             })}
           </div>
 
-
-    {/* Core Team Scrolling */}
-    <div
-      className="overflow-hidden group relative pt-2"
-      style={{
-        maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)"
-      }}
-        >
-      <div className="flex gap-6 whitespace-nowrap animate-scroll group-hover:[animation-play-state:paused]">
-        {club.coreTeam.map((m, i) => {
-          const initials = m.name.split(" ").map(s => s[0]).join("").toUpperCase().slice(0, 2);
-
-          return (
-            <Card
-              key={i}
-              className="
-                inline-flex flex-col justify-between min-w-[200px] max-w-[200px]
-                backdrop-blur bg-white/70 border rounded-xl px-4 py-4 shadow-sm
-                hover:shadow-md hover:-translate-y-[2px] hover:scale-[1.02]
-                transition duration-200 cursor-pointer
-              "
-            >
-              <div className="flex items-center justify-center">
-                <div className="w-10 h-10 bg-indigo-600 text-white flex items-center justify-center rounded-full text-[13px] font-medium shadow">
-                  {initials}
-                </div>
-              </div>
-              <div className="text-center space-y-1 mt-2">
-                <span className="font-medium tracking-tight text-[14px]">{m.name}</span>
-                <Badge
-                  variant="outline"
-                  className="text-[10px] tracking-wide px-2 py-[1px]"
-                >
-                  {m.designation}
-                </Badge>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
-
-  </div>
-</section>
+        </div>
+      </section>
     <br />
 
       <div className="space-y-8">
 
         {/* Core Team Scrolling */}
         <section className="space-y-3">
-          <h2 className="text-2xl font-semibold tracking-tight">Core Team</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold tracking-tight">Core Team</h2>
+            <Dialog open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Add Team Members <Pencil className="w-4 h-4 ml-1" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add Team Member</DialogTitle>
+                  <DialogDescription>Enter the details of the new team member.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Name</Label>
+                    <Input id="name" value={newMember.name} onChange={(e) => setNewMember({...newMember, name: e.target.value})} />
+                  </div>
+                  <div>
+                    <Label htmlFor="uid">UID</Label>
+                    <Input id="uid" value={newMember.uid} onChange={(e) => setNewMember({...newMember, uid: e.target.value})} />
+                  </div>
+                  <div>
+                    <Label htmlFor="branch">Branch</Label>
+                    <Input id="branch" value={newMember.branch} onChange={(e) => setNewMember({...newMember, branch: e.target.value})} />
+                  </div>
+                  <div>
+                    <Label htmlFor="year">Year</Label>
+                    <Input id="year" value={newMember.year} onChange={(e) => setNewMember({...newMember, year: e.target.value})} />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={() => {
+                    if (newMember.name && newMember.uid && newMember.branch && newMember.year) {
+                      const member = {
+                        id: crypto.randomUUID(),
+                        name: newMember.name,
+                        designation: `${newMember.uid} - ${newMember.branch} ${newMember.year}`,
+                      };
+                      updateClub(club.id, { coreTeam: [...club.coreTeam, member] });
+                      setNewMember({ name: '', uid: '', branch: '', year: '' });
+                      setIsAddMemberOpen(false);
+                    }
+                  }}>Add Member</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
 
           <div className="overflow-hidden group relative py-2"
             style={{
