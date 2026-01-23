@@ -319,16 +319,16 @@ const ClubDashboard: React.FC = () => {
               {(club.coreTeam && club.coreTeam.length > 0
                 ? [...club.coreTeam, ...club.coreTeam]
                 : [
-                    { name: "Yogesh Kumamr", designation: "Secretary" },
-                    { name: "Disha K", designation: "Joint Secretary" },
-                    { name: "Simran Kaur", designation: "UI/UX Designer" },
-                    { name: "Rohit Sharma", designation: "Events Head" },
-                    { name: "Neha Gupta", designation: "Media Lead" },
-                    { name: "Aman Verma", designation: "CSE Student" },
-                    { name: "Jasleen Kaur", designation: "Planning Head" },
-                    { name: "Rohit Gupta", designation: "Co Events Head" },
-                    { name: "Naina", designation: "PR Head" },
-                    { name: "Disha", designation: "Research Lead" },
+                    { name: "Yogesh Kumamr", designation: "Secretary", branch: "CSE", year: "3rd" },
+                    { name: "Disha K", designation: "Joint Secretary", branch: "ECE", year: "3rd" },
+                    { name: "Simran Kaur", designation: "UI/UX Designer", branch: "CSE", year: "2nd" },
+                    { name: "Rohit Sharma", designation: "Events Head", branch: "ME", year: "3rd" },
+                    { name: "Neha Gupta", designation: "Media Lead", branch: "CSE", year: "3rd" },
+                    { name: "Aman Verma", designation: "CSE Student", branch: "CSE", year: "2nd" },
+                    { name: "Jasleen Kaur", designation: "Planning Head", branch: "ECE", year: "3rd" },
+                    { name: "Rohit Gupta", designation: "Co Events Head", branch: "ME", year: "2nd" },
+                    { name: "Naina", designation: "PR Head", branch: "CSE", year: "3rd" },
+                    { name: "Disha", designation: "Research Lead", branch: "ECE", year: "2nd" },
                   ]).map((m, i) => {
                 const initials = m.name.split(" ").map(s => s[0]).join("").toUpperCase().slice(0, 2);
 
