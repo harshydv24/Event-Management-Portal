@@ -76,6 +76,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       role,
       uid: role === 'student' ? uid : undefined,
       clubId: role === 'club' ? crypto.randomUUID() : undefined,
+      depId: role === 'department' ? depId : undefined,   // needs checkup
     };
 
     users[key] = newUser;
