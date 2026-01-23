@@ -135,12 +135,12 @@ const ClubEvents: React.FC = () => {
 
         {/* Academic Tabs */}
         <Tabs defaultValue="all">
-          <TabsList className="flex gap-3 bg-muted/20 rounded-lg p-1">
-            <TabsTrigger value="all" className="px-3 data-[state=active]:bg-blue-500 data-[state=active]:text-white">All ({clubEvents.length})</TabsTrigger>
-            <TabsTrigger value="pending" className="px-3 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Pending ({pendingEvents.length})</TabsTrigger>
-            <TabsTrigger value="approved" className="px-3 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Approved ({approvedEvents.length})</TabsTrigger>
-            <TabsTrigger value="active" className="px-3 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Active ({activeEvents.length})</TabsTrigger>
-            <TabsTrigger value="rejected" className="px-3 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Rejected ({rejectedEvents.length})</TabsTrigger>
+          <TabsList className="bg-muted/40">
+            <TabsTrigger value="all">All ({clubEvents.length})</TabsTrigger>
+            <TabsTrigger value="pending">Pending ({pendingEvents.length})</TabsTrigger>
+            <TabsTrigger value="approved">Approved ({approvedEvents.length})</TabsTrigger>
+            <TabsTrigger value="active">Active ({activeEvents.length})</TabsTrigger>
+            <TabsTrigger value="rejected">Rejected ({rejectedEvents.length})</TabsTrigger>
           </TabsList>
 
           {/* TAB: All */}
