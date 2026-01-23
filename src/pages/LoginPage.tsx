@@ -62,15 +62,15 @@ const LoginPage: React.FC = () => {
       if (authMode === 'login') {
         const success = await login(email, password, selectedRole);
         if (success) {
-          toast({ title: 'Welcome back!', description: 'You have successfully logged in.' });
+          toast({ title: 'Welcome back!😛', description: 'You have successfully logged in.' });
           navigate(`/${selectedRole}`);
         } else {
-          toast({ title: 'Login failed', description: 'Invalid email or password.', variant: 'destructive' });
+          toast({ title: 'Login failed🥺', description: 'Kindly re-check your credentials', variant: 'destructive' });
         }
       } else {
         const success = await signup(email, password, name, selectedRole, uid);
         if (success) {
-          toast({ title: 'Account created!', description: 'Welcome to the Event Portal.' });
+          toast({ title: 'Account created!🥳', description: 'Welcome to the Event Portal.' });
           navigate(`/${selectedRole}`);
         } else {
           toast({ title: 'Signup failed', description: 'An account with this email already exists.', variant: 'destructive' });
@@ -280,48 +280,6 @@ const LoginPage: React.FC = () => {
                   )}
                 </div>
               )}
-
-
-
-
-
-
-
-
-
-
-
-
-
-              {/* {selectedRole === "student" && (
-                <div className="space-y-1.5 animate-fade-in">
-                  <Label>University ID (UID)</Label>
-                  <Input
-                    placeholder="Enter your UID"
-                    value={uid}
-                    onChange={(e) => setUid(e.target.value)}
-                    required
-                  />
-                </div>
-              )} */}
-
-              {/* Email */}
-              {/* {selectedRole === "club" && (
-                  <div className="space-y-1.5 relative">
-                    <Label>Email</Label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
-                      <Input
-                        className="pl-10"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-              )} */}
 
               {/* Password */}
               <div className="space-y-1.5 relative">

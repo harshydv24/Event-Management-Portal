@@ -59,8 +59,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     password: string, 
     name: string, 
     role: UserRole, 
-    uid?: string
-  ): Promise<boolean> => {
+    uid?: string,
+    depId?: string,
+    ): Promise<boolean> => {
     const users = getStoredUsers();
     const key = `${email}_${role}`;
 
@@ -76,7 +77,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       role,
       uid: role === 'student' ? uid : undefined,
       clubId: role === 'club' ? crypto.randomUUID() : undefined,
-      depId: role === 'department' ? depId : undefined,   // needs checkup
+      depId: role === 'department' ? crypto.randomUUID() : undefined, //fixed for now
     };
 
     users[key] = newUser;
