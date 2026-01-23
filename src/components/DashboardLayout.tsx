@@ -109,7 +109,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             <span
               className={`
                 text-sm cursor-pointer pb-2 transition tracking-wide whitespace-nowrap
-                ${isActive ? 'text-primary font-medium' : 'text-muted-foreground hover:text-foreground'}
+                ${isActive ? 'text-primary font-bold' : 'text-muted-foreground hover:text-foreground'}
               `}
             >
               {item.label}
@@ -126,7 +126,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     {user.role === 'club' && (
       <Button size="sm" className="font-medium tracking-wide" asChild>
         <Link to="/club/create-event">
-          + Create Event
+        <Plus className="w-3 h-3 mr-0" />
+        Create Event
         </Link>
       </Button>
     )}

@@ -103,7 +103,7 @@ const ClubDashboard: React.FC = () => {
 
       {/* Overview Section */}
       <section className="space-y-4 mb-8">
-        <h2 className="text-xl font-semibold tracking-tight text-slate-800">
+        <h2 className="text-2xl font-semibold tracking-tight text-slate-800">
           Overview
         </h2>
 
@@ -164,10 +164,10 @@ const ClubDashboard: React.FC = () => {
 
       {/* People Section */}
       <section className="space-y-4 mb-10">
-        <h2 className="text-xl font-semibold tracking-tight text-slate-800">
+        <h2 className="text-2xl font-semibold tracking-tight text-slate-800">
           People
         </h2>
-        <p className="text-xs text-slate-500 tracking-wide">
+        <p className="text-s text-slate-500 tracking-wide">
           Leadership & core management team
         </p>
 
@@ -178,7 +178,10 @@ const ClubDashboard: React.FC = () => {
             <h3 className="text-sm font-semibold text-slate-700 tracking-wide uppercase">
               Leadership
             </h3>
-            <span className="text-xs text-slate-500">2 Members</span>
+            <div className="flex items-center gap-1 text-s text-slate-500">
+              <Users className="w-4 h-4" />
+              <span>2</span>
+            </div>
           </div>
 
           {/* Leadership Cards */}
@@ -202,8 +205,8 @@ const ClubDashboard: React.FC = () => {
                 <Card
                   key={index}
                   className="
-                    flex items-center justify-between gap-4 px-5 py-4 
-                    rounded-xl bg-white border border-slate-200 
+                    flex items-center justify-between gap-4 px-5 py-4
+                    rounded-xl bg-white border border-slate-200
                     shadow-[0_4px_10px_rgba(0,0,0,0.04)]
                     hover:shadow-[0_6px_14px_rgba(0,0,0,0.05)]
                     transition
@@ -224,7 +227,7 @@ const ClubDashboard: React.FC = () => {
                       <span className="text-xs text-slate-600">{role}</span>
                       <Badge
                         variant="outline"
-                        className="text-[10px] tracking-wide px-2 py-[1px] mt-1 border-slate-300"
+                        className="text-[10px] tracking-wide px-2 py-[1px] mt-1 border-slate-300 w-fit"
                       >
                         {leader.designation}
                       </Badge>
@@ -244,7 +247,7 @@ const ClubDashboard: React.FC = () => {
         {/* Core Team Scrolling */}
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold tracking-tight">Core Team</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-800">Core Team</h2>
             <Dialog open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -367,7 +370,7 @@ const ClubDashboard: React.FC = () => {
         {/* Timeline Events */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold tracking-tight">Event Timeline</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-800">Event Timeline</h2>
             <Link to="/club/events">
               <Button variant="outline" size="sm">
                 View All <ChevronRight className="w-4 h-4 ml-1" />
