@@ -14,7 +14,7 @@ const StudentEvents: React.FC = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6 animate-fade-in">
-        <h1 className="text-3xl font-bold">All Events</h1>
+        <h1 className="text-2xl font-semibold text-slate-800">All Events</h1>
         
         {allEvents.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

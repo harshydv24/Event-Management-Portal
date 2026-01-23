@@ -60,8 +60,8 @@ const ClubEvents: React.FC = () => {
     <Card className="p-5 rounded-2xl bg-white/80 backdrop-blur border shadow-sm hover:shadow-md hover:-translate-y-[2px] transition">
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-indigo-500 mt-[6px]" />
-          <h3 className="font-semibold tracking-tight text-[15px]">
+          {/* <span className="w-2 h-2 rounded-full bg-indigo-500 mt-[0px]" /> */}
+          <h3 className="font-bold tracking-tight text-[18px]">
             {event.name}
           </h3>
         </div>
@@ -79,7 +79,7 @@ const ClubEvents: React.FC = () => {
 
         <div className="flex items-center gap-1">
           <Users className="w-4 h-4" />
-          {event.participants.length} registered
+          {event.participants.length} registered  
         </div>
 
         {event.venue && (
@@ -125,7 +125,7 @@ const ClubEvents: React.FC = () => {
 
         {/* Academic Header */}
         <div className="flex flex-col">
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-2xl font-semibold text-slate-800 tracking-tight">
             Club Events
           </h1>
           <p className="text-xs text-muted-foreground tracking-wide">
@@ -136,11 +136,11 @@ const ClubEvents: React.FC = () => {
         {/* Academic Tabs */}
         <Tabs defaultValue="all">
           <TabsList className="flex gap-3 bg-muted/20 rounded-lg p-1">
-            <TabsTrigger value="all" className="px-3">All ({clubEvents.length})</TabsTrigger>
-            <TabsTrigger value="pending" className="px-3">Pending ({pendingEvents.length})</TabsTrigger>
-            <TabsTrigger value="approved" className="px-3">Approved ({approvedEvents.length})</TabsTrigger>
-            <TabsTrigger value="active" className="px-3">Active ({activeEvents.length})</TabsTrigger>
-            <TabsTrigger value="rejected" className="px-3">Rejected ({rejectedEvents.length})</TabsTrigger>
+            <TabsTrigger value="all" className="px-3 data-[state=active]:bg-blue-500 data-[state=active]:text-white">All ({clubEvents.length})</TabsTrigger>
+            <TabsTrigger value="pending" className="px-3 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Pending ({pendingEvents.length})</TabsTrigger>
+            <TabsTrigger value="approved" className="px-3 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Approved ({approvedEvents.length})</TabsTrigger>
+            <TabsTrigger value="active" className="px-3 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Active ({activeEvents.length})</TabsTrigger>
+            <TabsTrigger value="rejected" className="px-3 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Rejected ({rejectedEvents.length})</TabsTrigger>
           </TabsList>
 
           {/* TAB: All */}

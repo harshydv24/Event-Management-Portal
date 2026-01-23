@@ -59,7 +59,7 @@ const StudentDashboard: React.FC = () => {
       <div className="space-y-8 animate-fade-in">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="stat-card">
+          <Card className="stat-card p-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-student/10 flex items-center justify-center">
                 <Ticket className="w-6 h-6 text-student" />
@@ -70,7 +70,7 @@ const StudentDashboard: React.FC = () => {
               </div>
             </div>
           </Card>
-          <Card className="stat-card">
+          <Card className="stat-card p-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <Calendar className="w-6 h-6 text-primary" />
@@ -81,7 +81,7 @@ const StudentDashboard: React.FC = () => {
               </div>
             </div>
           </Card>
-          <Card className="stat-card">
+          <Card className="stat-card p-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
                 <Users className="w-6 h-6 text-accent" />
@@ -96,7 +96,7 @@ const StudentDashboard: React.FC = () => {
 
         {/* Registered Events */}
         <section>
-          <h2 className="text-2xl font-bold mb-4">My Registered Events</h2>
+          <h2 className="text-2xl font-semibold text-slate-800 mb-4">My Registered Events</h2>
           {registeredEvents.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {registeredEvents.map(event => (
@@ -118,7 +118,7 @@ const StudentDashboard: React.FC = () => {
 
         {/* Upcoming Events */}
         <section>
-          <h2 className="text-2xl font-bold mb-4">Upcoming Events</h2>
+          <h2 className="text-2xl font-semibold text-slate-800 mb-4">Upcoming Events</h2>
           {upcomingEvents.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {upcomingEvents.map(event => (
