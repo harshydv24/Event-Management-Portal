@@ -110,49 +110,60 @@ const DepartmentDashboard: React.FC = () => {
           </TabsList>
 
           <TabsContent value={activeTab} className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredEvents.map(ev => (
-              <Card key={ev.id} className="p-6 hover:shadow-md transition">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">{ev.departmentName || ev.clubName}</p>
-                    <h3 className="text-lg font-semibold mt-1">{ev.name}</h3>
-                  </div>
-                  <StatusBadge status={ev.status} />
-                </div>
-
-                <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{ev.description}</p>
-
-                <div className="grid grid-cols-2 gap-3 mt-4 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{format(new Date(ev.date), "MMM d, yyyy")}</span>
-                  <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{ev.time}</span>
-                  <span className="flex items-center gap-1"><MapPin className="w-4 h-4" />{ev.venue}</span>
-                  <span className="flex items-center gap-1"><Users className="w-4 h-4" />{ev.expectedParticipants}</span>
-                </div>
-
-                <div className="flex items-center justify-between mt-6">
-                  <div className="text-sm">
-                    <p className="font-medium">{ev.organizerName || 'Unknown Organizer'}</p>
-                    <p className="text-muted-foreground">Organizer</p>
+            {filteredEvents.length > 0 ? (
+              filteredEvents.map(ev => (
+                <Card key={ev.id} className="p-6 hover:shadow-md transition">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">{ev.departmentName || ev.clubName}</p>
+                      <h3 className="text-lg font-semibold mt-1">{ev.name}</h3>
+                    </div>
+                    <StatusBadge status={ev.status} />
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => setSelectedEvent(ev)}>
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    {ev.status === "pending_approval" && (
-                      <>
-                        <Button size="sm" className="bg-success hover:bg-success/90" onClick={() => handleApprove(ev)}>
-                          <Check className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="destructive" onClick={() => { setSelectedEvent(ev); setRejectOpen(true); }}>
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </>
-                    )}
+                  <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{ev.description}</p>
+
+                  <div className="grid grid-cols-2 gap-3 mt-4 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{format(new Date(ev.date), "MMM d, yyyy")}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{ev.time}</span>
+                    <span className="flex items-center gap-1"><MapPin className="w-4 h-4" />{ev.venue}</span>
+                    <span className="flex items-center gap-1"><Users className="w-4 h-4" />{ev.expectedParticipants}</span>
                   </div>
-                </div>
+
+                  <div className="flex items-center justify-between mt-6">
+                    <div className="text-sm">
+                      <p className="font-medium">{ev.organizerName || 'Unknown Organizer'}</p>
+                      <p className="text-muted-foreground">Organizer</p>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setSelectedEvent(ev)}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      {ev.status === "pending_approval" && (
+                        <>
+                          <Button size="sm" className="bg-success hover:bg-success/90" onClick={() => handleApprove(ev)}>
+                            <Check className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => { setSelectedEvent(ev); setRejectOpen(true); }}>
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))
+            ) : (
+              <Card className="col-span-full p-8 text-center">
+                <p className="text-muted-foreground">
+                  {activeTab === "all" && "No events found."}
+                  {activeTab === "pending" && "No pending events to review."}
+                  {activeTab === "approved" && "No approved events."}
+                  {activeTab === "rejected" && "No rejected events."}
+                </p>
               </Card>
-            ))}
+            )}
           </TabsContent>
         </Tabs>
       </div>

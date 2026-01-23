@@ -58,7 +58,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const Icon = config.icon;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
 <header className={`${config.color} text-white shadow-sm`}>
   <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -166,11 +166,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       </nav> */}
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-grow">
         {children}
       </main>
 
-      <footer className="border-t bg-muted/30 mt-auto">
+      <footer className="border-t bg-muted/30">
   <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
     © {new Date().getFullYear()} University Event Management System. All rights reserved.
   </div>
