@@ -53,6 +53,8 @@ export interface Event {
   m2mPdf?: string;
   clubId: string;
   clubName: string;
+  departmentName?: string;
+  organizerName?: string;
   status: EventStatus;
   feedback?: string;
   participants: EventParticipant[];

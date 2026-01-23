@@ -39,7 +39,7 @@ const roleConfig = {
   department: {
     icon: Building2,
     title: 'Department Portal',
-    color: 'bg-department',
+    color: 'bg-club',
     navItems: [
       { path: '/department', label: 'Dashboard', icon: LayoutDashboard },
       { path: '/department/pending', label: 'Pending Approval', icon: Calendar },
@@ -169,6 +169,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <main className="container mx-auto px-4 py-8">
         {children}
       </main>
+
+      <footer className="border-t bg-muted/30 mt-auto">
+  <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
+    © {new Date().getFullYear()} University Event Management System. All rights reserved.
+  </div>
+</footer>
     </div>
   );
 };
