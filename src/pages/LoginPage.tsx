@@ -107,7 +107,7 @@ const LoginPage: React.FC = () => {
             Event Management Portal
           </h1>
           <p className="text-lg text-gray-200 mb-10">
-            Select your login role to continue
+            Select your role to continue
           </p>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -150,54 +150,178 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
-
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-700/20 via-purple-700/20 to-pink-600/20 backdrop-blur-md" />
 
       <Card className="relative w-full max-w-md shadow-2xl border border-white/20 backdrop-blur-xl bg-white/90 animate-scale-in">
         <CardHeader className="text-center space-y-3 relative">
-          <Button variant="ghost" className="absolute left-4 top-4" onClick={() => setSelectedRole(null)}>
+          <Button
+            variant="ghost"
+            className="absolute left-4 top-4"
+            onClick={() => setSelectedRole(null)}
+          >
             <ArrowLeft className="w-4 h-4 mr-2" /> Back
           </Button>
-          <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-2" >
+          <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-2">
             <Icon className="w-7 h-7" />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">{config.title}</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight">
+            {config.title}
+          </CardTitle>
           <CardDescription>{config.description}</CardDescription>
         </CardHeader>
 
         <CardContent>
-          <Tabs value={authMode} onValueChange={(v) => setAuthMode(v as AuthMode)}>
+          <Tabs
+            value={authMode}
+            onValueChange={(v) => setAuthMode(v as AuthMode)}
+          >
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
 
+
             <form onSubmit={handleSubmit} className="space-y-4">
-              {authMode === 'signup' && (
+
+              {/* changed below this @rishabh */}
+              {authMode === "signup" && (
                 <div className="animate-fade-in space-y-4">
                   <div className="space-y-1.5">
                     <Label>Full Name</Label>
-                    <Input placeholder="Enter your full name" value={name} onChange={(e) => setName(e.target.value)} required />
+                    <Input
+                      placeholder="Enter your full name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                    />
                   </div>
 
-                  {selectedRole === 'student' && (
+                  {selectedRole === "student" && (
                     <div className="space-y-1.5 animate-fade-in">
                       <Label>University ID (UID)</Label>
-                      <Input placeholder="Enter your UID" value={uid} onChange={(e) => setUid(e.target.value)} required />
+                      <Input
+                        placeholder="Enter your UID"
+                        value={uid}
+                        onChange={(e) => setUid(e.target.value)}
+                        required
+                      />
                     </div>
+                  )}
+
+                  {/* Email */}                  
+                  <div className="space-y-1.5 relative">
+                    <Label>Email</Label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
+                      <Input
+                        className="pl-10"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Created this */}
+              {authMode === "login" && (
+                <div className="animate-fade-in space-y-4">
+
+                  {selectedRole === "student" && (
+                    <div className="space-y-1.5 animate-fade-in">
+                      <Label>University ID (UID)</Label>
+                      <Input
+                        placeholder="Enter your UID"
+                        value={uid}
+                        onChange={(e) => setUid(e.target.value)}
+                        required
+                      />
+                    </div>
+                  )}
+
+                  {/* Email */}
+                  {selectedRole === "club" && (                  
+                  <div className="space-y-1.5 relative">
+                    <Label>Email</Label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
+                      <Input
+                        className="pl-10"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                  )}
+
+                  {/* Email */}
+                  {selectedRole === "department" && (                  
+                  <div className="space-y-1.5 relative">
+                    <Label>Email</Label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
+                      <Input
+                        className="pl-10"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
                   )}
                 </div>
               )}
 
-              {/* Email */}
-              <div className="space-y-1.5 relative">
-                <Label>Email</Label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
-                  <Input className="pl-10" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+
+
+
+
+
+
+
+
+
+
+
+
+              {/* {selectedRole === "student" && (
+                <div className="space-y-1.5 animate-fade-in">
+                  <Label>University ID (UID)</Label>
+                  <Input
+                    placeholder="Enter your UID"
+                    value={uid}
+                    onChange={(e) => setUid(e.target.value)}
+                    required
+                  />
                 </div>
-              </div>
+              )} */}
+
+              {/* Email */}
+              {/* {selectedRole === "club" && (
+                  <div className="space-y-1.5 relative">
+                    <Label>Email</Label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
+                      <Input
+                        className="pl-10"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+              )} */}
 
               {/* Password */}
               <div className="space-y-1.5 relative">
@@ -206,22 +330,33 @@ const LoginPage: React.FC = () => {
                   <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
                   <Input
                     className="pl-10 pr-10"
-                    type={showPwd ? 'text' : 'password'}
+                    type={showPwd ? "text" : "password"}
                     placeholder="•••••••"
                     value={password}
                     minLength={6}
                     required
                     onChange={(e) => setPassword(e.target.value)}
                   />
-                  <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-70 hover:opacity-100">
-                    {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  <button
+                    type="button"
+                    onClick={() => setShowPwd(!showPwd)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 opacity-70 hover:opacity-100"
+                  >
+                    {showPwd ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
-              </div>
+              </div>              
 
-              {authMode === 'login' && (
+              {authMode === "login" && (
                 <div className="flex justify-end">
-                  <button type="button" className="text-xs text-blue-600 hover:underline">
+                  <button
+                    type="button"
+                    className="text-xs text-blue-600 hover:underline"
+                  >
                     Forgot Password?
                   </button>
                 </div>
@@ -229,7 +364,7 @@ const LoginPage: React.FC = () => {
 
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {authMode === 'login' ? 'Login' : 'Create Account'}
+                {authMode === "login" ? "Login" : "Create Account"}
               </Button>
             </form>
           </Tabs>
