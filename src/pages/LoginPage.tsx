@@ -16,7 +16,7 @@ const roleConfig = {
   student: {
     icon: GraduationCap,
     title: 'Student Portal',
-    description: 'View and register for campus events',
+    description: 'View and register for your campus events',
     color: 'bg-student text-student-foreground',
     borderColor: 'border-student',
   },
@@ -30,7 +30,7 @@ const roleConfig = {
   department: {
     icon: Building2,
     title: 'Department Portal',
-    description: 'Approve and oversee campus events',
+    description: 'Approve and oversee all the campus events',
     color: 'bg-department text-department-foreground',
     borderColor: 'border-department',
   },
@@ -103,10 +103,10 @@ const LoginPage: React.FC = () => {
         </div>
 
         <div className="relative w-full max-w-5xl text-white animate-fade-in">
-          <h1 className="text-5xl font-extrabold tracking-tight mb-3">
+          <h1 className="text-5xl font-semibold tracking-tight mb-3 font-sans">
             Event Management Portal
           </h1>
-          <p className="text-lg text-gray-200 mb-10">
+          <p className="text-lg text-gray-200 mb-10 font-serif">
             Select your role to continue
           </p>
 
@@ -153,8 +153,12 @@ const LoginPage: React.FC = () => {
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-700/20 via-purple-700/20 to-pink-600/20 backdrop-blur-md" />
 
-      <Card className="relative w-full max-w-md shadow-2xl border border-white/20 backdrop-blur-xl bg-white/90 animate-scale-in">
-        <CardHeader className="text-center space-y-3 relative">
+      <Card className="relative w-full max-w-md rounded-3xl 
+bg-gradient-to-br from-white/85 via-indigo-50/80 to-purple-50/80
+backdrop-blur-lg 
+border border-indigo-300/50 
+shadow-xl animate-scale-in">
+        <CardHeader className="text-center space-y-4 relative text-slate-700">
           <Button
             variant="ghost"
             className="absolute left-4 top-4"
