@@ -67,14 +67,29 @@ const StudentEvents: React.FC = () => {
   const handleRegister = () => {
     if (!selectedEvent || !user) return;
 
+    // Validate all required fields
+    const uid = registrationData.uid || user.uid || '';
+    const email = registrationData.email || user.email || '';
+    const branch = registrationData.branch.trim();
+    const sec = registrationData.sec.trim();
+
+    if (!uid || !email || !branch || !sec) {
+      toast({
+        title: 'Registration Failed',
+        description: 'Please fill in all required fields (UID, Email, Branch, and Section)',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     registerForEvent(selectedEvent.id, {
       eventId: selectedEvent.id,
       studentId: user.id,
       studentName: user.name,
-      studentUid: registrationData.uid || user.uid || '',
-      studentEmail: registrationData.email || user.email,
-      studentBranch: registrationData.branch,
-      studentSec: registrationData.sec,
+      studentUid: uid,
+      studentEmail: email,
+      studentBranch: branch,
+      studentSec: sec,
     });
 
     toast({
@@ -439,40 +454,44 @@ const StudentEvents: React.FC = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="reg-uid">University ID (UID)</Label>
+              <Label htmlFor="reg-uid">University ID (UID) <span className="text-red-500">*</span></Label>
               <Input
                 id="reg-uid"
                 placeholder="Enter your UID"
                 value={registrationData.uid}
                 onChange={(e) => setRegistrationData(prev => ({ ...prev, uid: e.target.value }))}
+                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reg-email">Email</Label>
+              <Label htmlFor="reg-email">Email <span className="text-red-500">*</span></Label>
               <Input
                 id="reg-email"
                 type="email"
                 placeholder="Enter your email"
                 value={registrationData.email}
                 onChange={(e) => setRegistrationData(prev => ({ ...prev, email: e.target.value }))}
+                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reg-branch">Branch</Label>
+              <Label htmlFor="reg-branch">Branch <span className="text-red-500">*</span></Label>
               <Input
                 id="reg-branch"
                 placeholder="Enter your branch"
                 value={registrationData.branch}
                 onChange={(e) => setRegistrationData(prev => ({ ...prev, branch: e.target.value }))}
+                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reg-sec">Section</Label>
+              <Label htmlFor="reg-sec">Section <span className="text-red-500">*</span></Label>
               <Input
                 id="reg-sec"
                 placeholder="Enter your section"
                 value={registrationData.sec}
                 onChange={(e) => setRegistrationData(prev => ({ ...prev, sec: e.target.value }))}
+                required
               />
             </div>
             <Button className="w-full" onClick={handleRegister}>

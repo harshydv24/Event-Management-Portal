@@ -54,15 +54,30 @@ const StudentDashboard: React.FC = () => {
 
   const handleRegister = () => {
     if (!selectedEvent || !user) return;
-    
+
+    // Validate all required fields
+    const uid = registrationData.uid || user.uid || '';
+    const email = registrationData.email || user.email || '';
+    const branch = registrationData.branch.trim();
+    const sec = registrationData.sec.trim();
+
+    if (!uid || !email || !branch || !sec) {
+      toast({
+        title: 'Registration Failed',
+        description: 'Please fill in all required fields (UID, Email, Branch, and Section)',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     registerForEvent(selectedEvent.id, {
       eventId: selectedEvent.id,
       studentId: user.id,
       studentName: user.name,
-      studentUid: registrationData.uid || user.uid || '',
-      studentEmail: registrationData.email || user.email,
-      studentBranch: registrationData.branch,
-      studentSec: registrationData.sec,
+      studentUid: uid,
+      studentEmail: email,
+      studentBranch: branch,
+      studentSec: sec,
     });
 
     toast({
@@ -80,39 +95,36 @@ const StudentDashboard: React.FC = () => {
       <div className="space-y-8 animate-fade-in">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="stat-card p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-green-100 flex items-center justify-center shadow-sm">
-                <Ticket className="w-7 h-7 text-green-600" />
+          <Card className="stat-card p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                <Ticket className="w-5 h-5 text-green-600" />
               </div>
               <div className="flex-1">
-                <p className="text-3xl font-bold text-black">{registeredEvents.length}</p>
+                <p className="text-2xl font-bold text-black">{registeredEvents.length}</p>
                 <p className="text-sm text-muted-foreground font-medium">Registered Events</p>
-                <p className="text-xs text-muted-foreground mt-1">Events you've signed up for</p>
               </div>
             </div>
           </Card>
-          <Card className="stat-card p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center shadow-sm">
-                <Calendar className="w-7 h-7 text-blue-600" />
+          <Card className="stat-card p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-blue-600" />
               </div>
               <div className="flex-1">
-                <p className="text-3xl font-bold text-black">{upcomingEvents.length}</p>
+                <p className="text-2xl font-bold text-black">{upcomingEvents.length}</p>
                 <p className="text-sm text-muted-foreground font-medium">Upcoming Events</p>
-                <p className="text-xs text-muted-foreground mt-1">Available for registration</p>
               </div>
             </div>
           </Card>
-          <Card className="stat-card p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center shadow-sm">
-                <Users className="w-7 h-7 text-purple-600" />
+          <Card className="stat-card p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                <Users className="w-5 h-5 text-purple-600" />
               </div>
               <div className="flex-1">
-                <p className="text-3xl font-bold text-black">{events.length}</p>
+                <p className="text-2xl font-bold text-black">{events.length}</p>
                 <p className="text-sm text-muted-foreground font-medium">Total Events</p>
-                <p className="text-xs text-muted-foreground mt-1">All events in the system</p>
               </div>
             </div>
           </Card>
@@ -405,40 +417,44 @@ const StudentDashboard: React.FC = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="reg-uid">University ID (UID)</Label>
+              <Label htmlFor="reg-uid">University ID (UID) <span className="text-red-500">*</span></Label>
               <Input
                 id="reg-uid"
                 placeholder="Enter your UID"
                 value={registrationData.uid}
                 onChange={(e) => setRegistrationData(prev => ({ ...prev, uid: e.target.value }))}
+                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reg-email">Email</Label>
+              <Label htmlFor="reg-email">Email <span className="text-red-500">*</span></Label>
               <Input
                 id="reg-email"
                 type="email"
                 placeholder="Enter your email"
                 value={registrationData.email}
                 onChange={(e) => setRegistrationData(prev => ({ ...prev, email: e.target.value }))}
+                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reg-branch">Branch</Label>
+              <Label htmlFor="reg-branch">Branch <span className="text-red-500">*</span></Label>
               <Input
                 id="reg-branch"
                 placeholder="Enter your branch"
                 value={registrationData.branch}
                 onChange={(e) => setRegistrationData(prev => ({ ...prev, branch: e.target.value }))}
+                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reg-sec">Section</Label>
+              <Label htmlFor="reg-sec">Section <span className="text-red-500">*</span></Label>
               <Input
                 id="reg-sec"
                 placeholder="Enter your section"
                 value={registrationData.sec}
                 onChange={(e) => setRegistrationData(prev => ({ ...prev, sec: e.target.value }))}
+                required
               />
             </div>
             <Button className="w-full" onClick={handleRegister}>
