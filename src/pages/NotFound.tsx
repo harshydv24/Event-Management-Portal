@@ -14,16 +14,7 @@ const NotFound = () => {
       <div className="text-center">
         <img src={errorImg} alt="404 Page not found" className="errorImageClass" />
         
-        <a href="/" className="text-primary hover:text-primary/90">Return to Home</a>
-        {/* <button href="/" className="">Return to Home</button> */}
-        {/* <Button 
-            variant="ghost" 
-            className="absolute left-4 top-4"
-            
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button> */}
+        <a href="/" className="backToHome text-primary hover:text-primary/90">Return to Home</a>
       </div>
     </div>
   );

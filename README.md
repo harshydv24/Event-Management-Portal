@@ -1,22 +1,14 @@
-# Welcome to your project
+# Welcome to Our project
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
-
 ## How can I edit this code?
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
+There are several ways of editing your application best one is:
 
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+If you want to work locally using your own IDE, you can clone this repo to your GitHub (or local machine) and push changes to GitHub.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -30,7 +22,7 @@ git clone <YOUR_GIT_URL>
 cd <YOUR_PROJECT_NAME>
 
 # Step 3: Install the necessary dependencies.
-npm i
+npm install
 
 # Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
@@ -60,15 +52,12 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+If you liked our project do give it a star. 
+If you think thre can be some changes in our file or needs some improvement do fork and give a pull request we will check your work and add to our main file if your work is good.
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
-<!-- changed readme -->
+** Project Members: **
+- [Harsimran Singh](https://github.com/harsimran151) <span style="color: #6a737d;">TL (Project Manager if terms of corporate word lol) </span>
+- [Harsh Yadav](https://github.com/harshydv24)
+- [Raushan](https://github.com/raushan8032)
+- [Sangam](https://github.com/Sangamk27)
+- [Rishabh Paudel](https://github.com/rishabh-24bcs10110) <span style="color: #6a737d;">Yeah thats me who did all the work and still kept my name at the end lol</span>

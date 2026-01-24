@@ -1,55 +1,71 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-// import { Sun, Moon } from "lucide-react";
-import { useAuth } from '@/contexts/AuthContext';
-import { UserRole } from '@/types';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+// import { Sun, Moon } from "lucide-react"; // part of theme button
+import { useAuth } from "@/contexts/AuthContext";
+import { UserRole } from "@/types";
 import ThemeToggle from "@/components/ThemeToggle";
-// import ToggleSwitch from "@/components/ToggleSwitch";
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { GraduationCap, Users, Building2, ArrowLeft, Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+// import ToggleSwitch from "@/components/ToggleSwitch"; // can be used later on for theme button
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  GraduationCap,
+  Users,
+  Building2,
+  ArrowLeft,
+  Loader2,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-type AuthMode = 'login' | 'signup';
+type AuthMode = "login" | "signup";
 
 const roleConfig = {
   student: {
     icon: GraduationCap,
-    title: 'Student Portal',
-    description: 'View and register for your campus events',
-    color: 'bg-student text-student-foreground',
-    borderColor: 'border-student',
+    title: "Student Portal",
+    description: "View and register for your campus events",
+    color: "bg-student text-student-foreground",
+    borderColor: "border-student",
   },
   club: {
     icon: Users,
-    title: 'Club Portal',
-    description: 'Manage your club and create events',
-    color: 'bg-club text-club-foreground',
-    borderColor: 'border-club',
+    title: "Club Portal",
+    description: "Manage your club and create events",
+    color: "bg-club text-club-foreground",
+    borderColor: "border-club",
   },
   department: {
     icon: Building2,
-    title: 'Department Portal',
-    description: 'Approve and oversee all the campus events',
-    color: 'bg-department text-department-foreground',
-    borderColor: 'border-department',
+    title: "Department Portal",
+    description: "Approve and oversee all the campus events",
+    color: "bg-department text-department-foreground",
+    borderColor: "border-department",
   },
 };
 
 const LoginPage: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const [authMode, setAuthMode] = useState<AuthMode>('login');
+  const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [isLoading, setIsLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
 
   // Form state
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [uid, setUid] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [uid, setUid] = useState("");
 
   const { login, signup } = useAuth();
   const navigate = useNavigate();
@@ -61,22 +77,37 @@ const LoginPage: React.FC = () => {
 
     setIsLoading(true);
 
+    // for dialoge box after login or sign, etc
     try {
-      if (authMode === 'login') {
+      if (authMode === "login") {
         const success = await login(email, password, selectedRole);
         if (success) {
-          toast({ title: 'Welcome back!😛', description: 'You have successfully logged in.' });
+          toast({
+            title: "Welcome back!😛",
+            description: "You have successfully logged in.",
+          });
           navigate(`/${selectedRole}`);
         } else {
-          toast({ title: 'Login failed🥺', description: 'Kindly re-check your credentials', variant: 'destructive' });
+          toast({
+            title: "Login failed🥺",
+            description: "Kindly re-check your credentials",
+            variant: "destructive",
+          });
         }
       } else {
         const success = await signup(email, password, name, selectedRole, uid);
         if (success) {
-          toast({ title: 'Account created!🥳', description: 'Welcome to the Event Portal.' });
+          toast({
+            title: "Account created!🥳",
+            description: "Welcome to the Event Portal.",
+          });
           navigate(`/${selectedRole}`);
         } else {
-          toast({ title: 'Signup failed', description: 'An account with this email already exists.', variant: 'destructive' });
+          toast({
+            title: "Signup failed",
+            description: "An account with this email already exists.",
+            variant: "destructive",
+          });
         }
       }
     } finally {
@@ -85,17 +116,16 @@ const LoginPage: React.FC = () => {
   };
 
   const resetForm = () => {
-    setEmail('');
-    setPassword('');
-    setName('');
-    setUid('');
+    setEmail("");
+    setPassword("");
+    setName("");
+    setUid("");
   };
 
-  // ========== ROLE SELECTION PAGE UI UPGRADE ==========
+  // ========== ROLE SELECTION PAGE UPGRADE ==========
   if (!selectedRole) {
     return (
       <div className="min-h-screen relative flex items-center justify-center p-6 overflow-hidden">
-
         {/* Mixed campus + event background */}
         <div className="absolute inset-0">
           <div
@@ -110,17 +140,25 @@ const LoginPage: React.FC = () => {
             Event Management Portal
           </h1>
           <p className="text-lg text-gray-200 mb-7 font-serif">
-            Select your role to continue                       
-          </p>         
+            Select your role to continue
+          </p>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {(Object.entries(roleConfig) as [UserRole, typeof roleConfig.student][]).map(([role, config]) => {
+            {(
+              Object.entries(roleConfig) as [
+                UserRole,
+                typeof roleConfig.student,
+              ][]
+            ).map(([role, config]) => {
               const Icon = config.icon;
               return (
                 <Card
                   key={role}
                   className="cursor-pointer transition-all duration-300 bg-white/10 backdrop-blur-lg border border-white/20 hover:border-white/40 hover:shadow-2xl hover:-translate-y-1 rounded-xl"
-                  onClick={() => { setSelectedRole(role); resetForm(); }}
+                  onClick={() => {
+                    setSelectedRole(role);
+                    resetForm();
+                  }}
                 >
                   <CardHeader className="text-center pb-4">
                     <div className="mx-auto w-14 h-14 rounded-full bg-white/80 flex items-center justify-center mb-4 shadow-md">
@@ -159,30 +197,28 @@ const LoginPage: React.FC = () => {
 
         <Card
           className="relative w-full max-w-md rounded-3xl 
-bg-gradient-to-br from-white/85 via-indigo-50/80 to-purple-50/80
-backdrop-blur-lg 
-border border-indigo-300/50 
-shadow-xl animate-scale-in"
+            bg-gradient-to-br from-white/85 via-indigo-50/80 to-purple-50/80
+            backdrop-blur-lg 
+            border border-indigo-300/50 
+            shadow-xl animate-scale-in"
         >
           <CardHeader className="text-center space-y-4 relative text-slate-700">
-
             <Button
               variant="ghost"
               className="absolute left-4 top-4"
               onClick={() => setSelectedRole(null)}
             >
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back  {/* Back button on pages of login/sign up */}
             </Button>
 
             <div className="absolute right-5 top-0">
-              <ThemeToggle />
-            </div>  
-            
-            
+              <ThemeToggle /> {/*theme toggle button for changing theme */}
+            </div>
 
             <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-2">
-              <Icon className="w-7 h-7" />
+              <Icon className="w-7 h-7" /> {/* icon on login/sign up box */}
             </div>
+            
             <CardTitle className="text-2xl font-bold tracking-tight">
               {config.title}
             </CardTitle>
@@ -199,8 +235,9 @@ shadow-xl animate-scale-in"
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
               </TabsList>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* changed below this @rishabh */}
+
+              {/* form for sign up */}
+              <form onSubmit={handleSubmit} className="space-y-4">                
                 {authMode === "signup" && (
                   <div className="animate-fade-in space-y-4">
                     <div className="space-y-1.5">
@@ -243,7 +280,7 @@ shadow-xl animate-scale-in"
                   </div>
                 )}
 
-                {/* Created this */}
+                {/* input part for login */}
                 {authMode === "login" && (
                   <div className="animate-fade-in space-y-4">
                     {selectedRole === "student" && (
@@ -348,6 +385,7 @@ shadow-xl animate-scale-in"
         </Card>
       </div>
 
+      {/* footer */}
       <footer className="bg-muted/30 bg-gradient-to-br from-indigo-700/20 via-purple-700/20 to-pink-600/20 backdrop-blur-md">
         <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
           © 2026 University Event Management System. All rights reserved.
