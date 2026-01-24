@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sun, Moon } from "lucide-react";
+// import { Sun, Moon } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types';
 import ThemeToggle from "@/components/ThemeToggle";
@@ -106,15 +106,12 @@ const LoginPage: React.FC = () => {
         </div>
 
         <div className="relative w-full max-w-5xl text-white animate-fade-in">
-          <h1 className="text-5xl font-semibold tracking-tight mb-4 font-sans">
+          <h1 className="text-5xl font-semibold tracking-tight mb-5 font-sans">
             Event Management Portal
           </h1>
-          <p className="text-lg text-gray-200 mb-2 font-serif">
+          <p className="text-lg text-gray-200 mb-7 font-serif">
             Select your role to continue                       
-          </p>
-          <div className='mb-5 '>
-          <ThemeToggle />
-          </div>
+          </p>         
 
           <div className="grid md:grid-cols-3 gap-6">
             {(Object.entries(roleConfig) as [UserRole, typeof roleConfig.student][]).map(([role, config]) => {
@@ -177,9 +174,10 @@ shadow-xl animate-scale-in"
               <ArrowLeft className="w-4 h-4 mr-2" /> Back
             </Button>
 
-            <div className="absolute right-4 top-0">
+            <div className="absolute right-4 top-1">
               <ThemeToggle />
             </div>  
+            
             
 
             <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-2">

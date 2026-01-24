@@ -30,7 +30,7 @@ const ThemeToggle = () => {
       onClick={toggleTheme}
       className="themeButton transition"
     >
-      {isDark ? "🌙" : "☀️"}
+      {isDark ? "☀️" : "🌙"}
     </button>
   );
 };

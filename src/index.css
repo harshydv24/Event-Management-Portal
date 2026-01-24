@@ -44,6 +44,8 @@
   opacity: 0.8;
   background-color: aquamarine;
 } */
+
+
 .errorImageClass {
   /* background-image: url(../public/images/404error.png); */
   max-height: 25rem;
@@ -51,10 +53,20 @@
   opacity: 1; 
 }
 .themeButton {
-  background-color: transparent;
-  border: 1px solid white;
-  padding: 5px 10px 5px 10px;
-  border-radius: 25%;
+   border: 1px solid hsl(220 15% 80%);
+   border-radius: 999px;
+   padding: 0.4rem 0.75rem;
+  background: hsl(231 40% 90%);
+  color: hsl(231 48% 30%);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+ 
+}
+.themeButton:hover {
+  background: hsl(220 10% 80%);
+  box-shadow: 0 2px 6px hsl(220 10% 60% / 0.15);
+}
+.themeButton:active {
+  background: hsl(220 10% 75%);
 }
 
 .toggle {
@@ -147,55 +159,61 @@
 
   /* ye .dark dark mode ke liea hai na? */
   .dark {
-    --background: 224 50% 8%;
-    --foreground: 220 20% 95%;
+ --background: 220 20% 92%;
+  --foreground: 224 50% 18%;
 
-    --card: 224 45% 12%;
-    --card-foreground: 220 20% 95%;
+  --card: 220 15% 94%;
+  --card-foreground: 224 50% 18%;
 
-    --popover: 224 45% 12%;
-    --popover-foreground: 220 20% 95%;
+  --popover: 220 15% 94%;
+  --popover-foreground: 224 50% 18%;
 
-    --primary: 231 60% 55%;
-    --primary-foreground: 0 0% 100%;
+  --primary: 231 48% 28%;
+  --primary-foreground: 0 0% 100%;
 
-    --secondary: 224 40% 18%;
-    --secondary-foreground: 220 20% 95%;
+  --secondary: 220 20% 90%;
+  --secondary-foreground: 224 50% 18%;
 
-    --muted: 224 40% 18%;
-    --muted-foreground: 220 15% 60%;
+  --muted: 220 15% 88%;
+  --muted-foreground: 220 10% 42%;
 
-    --accent: 15 80% 55%;
-    --accent-foreground: 0 0% 100%;
+  --accent: 15 80% 58%;
+  --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 45%;
-    --destructive-foreground: 0 0% 100%;
+  --destructive: 0 72% 49%;
+  --destructive-foreground: 0 0% 100%;
 
-    --success: 142 60% 40%;
-    --success-foreground: 0 0% 100%;
+  --success: 142 70% 42%;
+  --success-foreground: 0 0% 100%;
 
-    --warning: 38 85% 45%;
-    --warning-foreground: 0 0% 100%;
+  --warning: 38 92% 48%;
+  --warning-foreground: 0 0% 100%;
 
-    --border: 224 40% 20%;
-    --input: 224 40% 20%;
-    --ring: 231 60% 55%;
+  --border: 220 20% 84%;
+  --input: 220 20% 84%;
+  --ring: 231 48% 28%;
 
-    --sidebar-background: 224 50% 10%;
-    --sidebar-foreground: 220 20% 95%;
-    --sidebar-primary: 15 80% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 224 40% 18%;
-    --sidebar-accent-foreground: 220 20% 95%;
-    --sidebar-border: 224 40% 18%;
-    --sidebar-ring: 15 80% 55%;
+  --radius: 0.75rem;
 
-    --student: 199 85% 55%;
-    --student-foreground: 0 0% 100%;
-    --club: 262 75% 65%;
-    --club-foreground: 0 0% 100%;
-    --department: 142 60% 50%;
-    --department-foreground: 0 0% 100%;
+  /* Sidebar */
+  --sidebar-background: 231 48% 22%;
+  --sidebar-foreground: 220 20% 92%;
+  --sidebar-primary: 15 80% 58%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 231 40% 32%;
+  --sidebar-accent-foreground: 220 20% 92%;
+  --sidebar-border: 231 40% 32%;
+  --sidebar-ring: 15 80% 58%;
+
+  /* Portal colors */
+  --student: 199 89% 46%;
+  --student-foreground: 0 0% 100%;
+
+  --club: 262 83% 56%;
+  --club-foreground: 0 0% 100%;
+
+  --department: 142 70% 42%;
+  --department-foreground: 0 0% 100%;
   }
 }
 
