@@ -1,4 +1,5 @@
 import React from 'react';
+import ThemeToggle from "@/components/ThemeToggle";
 import { useAuth } from '@/contexts/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -61,6 +62,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
 <header className={`${config.color} text-white shadow-sm`}>
+
+  <div className='container items-center flex justify-end'>
   <div className="container mx-auto px-4 py-4 flex items-center justify-between">
     <div className="flex items-center gap-3">
       <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -84,6 +87,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <LogOut className="w-4 h-4 mr-2" />
       Logout
     </Button>
+  </div>
+  <ThemeToggle />
   </div>
 </header>
 

@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+// import { Sun, Moon } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types';
+import ThemeToggle from "@/components/ThemeToggle";
+// import ToggleSwitch from "@/components/ToggleSwitch";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -103,12 +106,12 @@ const LoginPage: React.FC = () => {
         </div>
 
         <div className="relative w-full max-w-5xl text-white animate-fade-in">
-          <h1 className="text-5xl font-semibold tracking-tight mb-3 font-sans">
+          <h1 className="text-5xl font-semibold tracking-tight mb-5 font-sans">
             Event Management Portal
           </h1>
-          <p className="text-lg text-gray-200 mb-10 font-serif">
-            Select your role to continue
-          </p>
+          <p className="text-lg text-gray-200 mb-7 font-serif">
+            Select your role to continue                       
+          </p>         
 
           <div className="grid md:grid-cols-3 gap-6">
             {(Object.entries(roleConfig) as [UserRole, typeof roleConfig.student][]).map(([role, config]) => {
@@ -149,190 +152,208 @@ const LoginPage: React.FC = () => {
   const Icon = config.icon;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-700/20 via-purple-700/20 to-pink-600/20 backdrop-blur-md" />
+    <>
+      <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-700/20 via-purple-700/20 to-pink-600/20 backdrop-blur-md" />
 
-      <Card className="relative w-full max-w-md rounded-3xl 
+        <Card
+          className="relative w-full max-w-md rounded-3xl 
 bg-gradient-to-br from-white/85 via-indigo-50/80 to-purple-50/80
 backdrop-blur-lg 
 border border-indigo-300/50 
-shadow-xl animate-scale-in">
-        <CardHeader className="text-center space-y-4 relative text-slate-700">
-          <Button
-            variant="ghost"
-            className="absolute left-4 top-4"
-            onClick={() => setSelectedRole(null)}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back
-          </Button>
-          <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-2">
-            <Icon className="w-7 h-7" />
-          </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">
-            {config.title}
-          </CardTitle>
-          <CardDescription>{config.description}</CardDescription>
-        </CardHeader>
+shadow-xl animate-scale-in"
+        >
+          <CardHeader className="text-center space-y-4 relative text-slate-700">
 
-        <CardContent>
-          <Tabs
-            value={authMode}
-            onValueChange={(v) => setAuthMode(v as AuthMode)}
-          >
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
+            <Button
+              variant="ghost"
+              className="absolute left-4 top-4"
+              onClick={() => setSelectedRole(null)}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back
+            </Button>
 
+            <div className="absolute right-5 top-0">
+              <ThemeToggle />
+            </div>  
+            
+            
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-2">
+              <Icon className="w-7 h-7" />
+            </div>
+            <CardTitle className="text-2xl font-bold tracking-tight">
+              {config.title}
+            </CardTitle>
+            <CardDescription>{config.description}</CardDescription>
+          </CardHeader>
 
-              {/* changed below this @rishabh */}
-              {authMode === "signup" && (
-                <div className="animate-fade-in space-y-4">
-                  <div className="space-y-1.5">
-                    <Label>Full Name</Label>
-                    <Input
-                      placeholder="Enter your full name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                    />
-                  </div>
+          <CardContent>
+            <Tabs
+              value={authMode}
+              onValueChange={(v) => setAuthMode(v as AuthMode)}
+            >
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
 
-                  {selectedRole === "student" && (
-                    <div className="space-y-1.5 animate-fade-in">
-                      <Label>University ID (UID)</Label>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* changed below this @rishabh */}
+                {authMode === "signup" && (
+                  <div className="animate-fade-in space-y-4">
+                    <div className="space-y-1.5">
+                      <Label>Full Name</Label>
                       <Input
-                        placeholder="Enter your UID"
-                        value={uid}
-                        onChange={(e) => setUid(e.target.value)}
+                        placeholder="Enter your full name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
                         required
                       />
                     </div>
-                  )}
 
-                  {/* Email */}                  
-                  <div className="space-y-1.5 relative">
-                    <Label>Email</Label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
-                      <Input
-                        className="pl-10"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Created this */}
-              {authMode === "login" && (
-                <div className="animate-fade-in space-y-4">
-
-                  {selectedRole === "student" && (
-                    <div className="space-y-1.5 animate-fade-in">
-                      <Label>University ID (UID)</Label>
-                      <Input
-                        placeholder="Enter your UID"
-                        value={uid}
-                        onChange={(e) => setUid(e.target.value)}
-                        required
-                      />
-                    </div>
-                  )}
-
-                  {/* Email */}
-                  {selectedRole === "club" && (                  
-                  <div className="space-y-1.5 relative">
-                    <Label>Email</Label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
-                      <Input
-                        className="pl-10"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  )}
-
-                  {/* Email */}
-                  {selectedRole === "department" && (                  
-                  <div className="space-y-1.5 relative">
-                    <Label>Email</Label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
-                      <Input
-                        className="pl-10"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  )}
-                </div>
-              )}
-
-              {/* Password */}
-              <div className="space-y-1.5 relative">
-                <Label>Password</Label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
-                  <Input
-                    className="pl-10 pr-10"
-                    type={showPwd ? "text" : "password"}
-                    placeholder="•••••••"
-                    value={password}
-                    minLength={6}
-                    required
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPwd(!showPwd)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 opacity-70 hover:opacity-100"
-                  >
-                    {showPwd ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
+                    {selectedRole === "student" && (
+                      <div className="space-y-1.5 animate-fade-in">
+                        <Label>University ID (UID)</Label>
+                        <Input
+                          placeholder="Enter your UID"
+                          value={uid}
+                          onChange={(e) => setUid(e.target.value)}
+                          required
+                        />
+                      </div>
                     )}
-                  </button>
-                </div>
-              </div>              
 
-              {authMode === "login" && (
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    className="text-xs text-blue-600 hover:underline"
-                  >
-                    Forgot Password?
-                  </button>
-                </div>
-              )}
+                    {/* Email */}
+                    <div className="space-y-1.5 relative">
+                      <Label>Email</Label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
+                        <Input
+                          className="pl-10"
+                          type="email"
+                          placeholder="you@example.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {authMode === "login" ? "Login" : "Create Account"}
-              </Button>
-            </form>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+                {/* Created this */}
+                {authMode === "login" && (
+                  <div className="animate-fade-in space-y-4">
+                    {selectedRole === "student" && (
+                      <div className="space-y-1.5 animate-fade-in">
+                        <Label>University ID (UID)</Label>
+                        <Input
+                          placeholder="Enter your UID"
+                          value={uid}
+                          onChange={(e) => setUid(e.target.value)}
+                          required
+                        />
+                      </div>
+                    )}
+
+                    {/* Email */}
+                    {selectedRole === "club" && (
+                      <div className="space-y-1.5 relative">
+                        <Label>Email</Label>
+                        <div className="relative">
+                          <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
+                          <Input
+                            className="pl-10"
+                            type="email"
+                            placeholder="you@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Email */}
+                    {selectedRole === "department" && (
+                      <div className="space-y-1.5 relative">
+                        <Label>Email</Label>
+                        <div className="relative">
+                          <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
+                          <Input
+                            className="pl-10"
+                            type="email"
+                            placeholder="you@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Password */}
+                <div className="space-y-1.5 relative">
+                  <Label>Password</Label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
+                    <Input
+                      className="pl-10 pr-10"
+                      type={showPwd ? "text" : "password"}
+                      placeholder="•••••••"
+                      value={password}
+                      minLength={6}
+                      required
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPwd(!showPwd)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 opacity-70 hover:opacity-100"
+                    >
+                      {showPwd ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {authMode === "login" && (
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      Forgot Password?{" "}
+                      {/* not working right now, it will be after integration with backend*/}
+                    </button>
+                  </div>
+                )}
+
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading && (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  )}
+                  {authMode === "login" ? "Login" : "Create Account"}
+                </Button>
+              </form>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+
+      <footer className="bg-muted/30 bg-gradient-to-br from-indigo-700/20 via-purple-700/20 to-pink-600/20 backdrop-blur-md">
+        <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
+          © 2026 University Event Management System. All rights reserved.
+        </div>
+      </footer>
+    </>
   );
 };
 
