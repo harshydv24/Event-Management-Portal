@@ -174,7 +174,7 @@ shadow-xl animate-scale-in"
               <ArrowLeft className="w-4 h-4 mr-2" /> Back
             </Button>
 
-            <div className="absolute right-4 top-1">
+            <div className="absolute right-5 top-0">
               <ThemeToggle />
             </div>  
             
