@@ -3,14 +3,17 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { useAuth } from '@/contexts/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  Plus, 
+import {
+  LayoutDashboard,
+  Calendar,
+  Plus,
   LogOut,
   GraduationCap,
   Users,
-  Building2
+  Building2,
+  Bell,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -61,9 +64,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-<header className={`${config.color} text-white shadow-sm`}>
-
-  <div className='container items-center flex justify-end'>
+<header className="bg-primary text-primary-foreground shadow-sm">
   <div className="container mx-auto px-4 py-4 flex items-center justify-between">
     <div className="flex items-center gap-3">
       <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -74,21 +75,38 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           {config.title}
         </h1>
         <p className="text-xs opacity-90 tracking-wide">
-          Welcome, {user.name} ({user.role === "club" ? "President" : user.role})
+          Welcome, {user.name} 👋
         </p>
       </div>
     </div>
 
-    <Button 
-      variant="ghost" 
-      className="text-white hover:bg-white/20"
-      onClick={logout}
-    >
-      <LogOut className="w-4 h-4 mr-2" />
-      Logout
-    </Button>
-  </div>
-  <ThemeToggle />
+    <div className="flex items-center gap-3">
+      {/* Notification Bell */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="text-white hover:bg-white/20 relative"
+        title="Notifications"
+      >
+        <Bell className="w-4 h-4" />
+        {/* Notification dot - can be made dynamic */}
+        <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+      </Button>
+
+      {/* Enhanced Theme Toggle */}
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+      </div>
+
+      <Button
+        variant="ghost"
+        className="text-white hover:bg-white/20"
+        onClick={logout}
+      >
+        <LogOut className="w-4 h-4 mr-2" />
+        Logout
+      </Button>
+    </div>
   </div>
 </header>
 

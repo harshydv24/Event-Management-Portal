@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useEvents } from '@/contexts/EventContext';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -24,6 +25,22 @@ const StudentDashboard: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showRegistration, setShowRegistration] = useState(false);
   const [registrationData, setRegistrationData] = useState({ uid: '', email: '', branch: '', sec: '' });
+
+  // ESC key handler for accessibility
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (showRegistration) {
+          setShowRegistration(false);
+        } else if (selectedEvent) {
+          setSelectedEvent(null);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showRegistration, selectedEvent]);
 
   // Get registered and upcoming events
   const registeredEvents = events.filter(e =>
@@ -63,36 +80,39 @@ const StudentDashboard: React.FC = () => {
       <div className="space-y-8 animate-fade-in">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="stat-card p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-student/10 flex items-center justify-center">
-                <Ticket className="w-6 h-6 text-student" />
+          <Card className="stat-card p-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-green-100 flex items-center justify-center shadow-sm">
+                <Ticket className="w-7 h-7 text-green-600" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{registeredEvents.length}</p>
-                <p className="text-sm text-muted-foreground">Registered Events</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="stat-card p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{upcomingEvents.length}</p>
-                <p className="text-sm text-muted-foreground">Upcoming Events</p>
+              <div className="flex-1">
+                <p className="text-3xl font-bold text-black">{registeredEvents.length}</p>
+                <p className="text-sm text-muted-foreground font-medium">Registered Events</p>
+                <p className="text-xs text-muted-foreground mt-1">Events you've signed up for</p>
               </div>
             </div>
           </Card>
-          <Card className="stat-card p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
-                <Users className="w-6 h-6 text-accent" />
+          <Card className="stat-card p-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center shadow-sm">
+                <Calendar className="w-7 h-7 text-blue-600" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{events.length}</p>
-                <p className="text-sm text-muted-foreground">Total Events</p>
+              <div className="flex-1">
+                <p className="text-3xl font-bold text-black">{upcomingEvents.length}</p>
+                <p className="text-sm text-muted-foreground font-medium">Upcoming Events</p>
+                <p className="text-xs text-muted-foreground mt-1">Available for registration</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="stat-card p-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center shadow-sm">
+                <Users className="w-7 h-7 text-purple-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-3xl font-bold text-black">{events.length}</p>
+                <p className="text-sm text-muted-foreground font-medium">Total Events</p>
+                <p className="text-xs text-muted-foreground mt-1">All events in the system</p>
               </div>
             </div>
           </Card>
@@ -104,32 +124,51 @@ const StudentDashboard: React.FC = () => {
           {registeredEvents.length > 0 ? (
             <div className="space-y-4">
               {registeredEvents.map(event => (
-                <Card key={event.id} className="p-6 hover:shadow-md transition">
-                  <div className="flex items-start justify-between">
+                <Card key={event.id} className="p-6 hover:shadow-lg transition-all duration-300 hover:scale-[1.01]">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-lg font-semibold">{event.name}</h3>
+                        <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
+                          ✓ Registered
+                        </Badge>
+                      </div>
                       <p className="text-sm text-muted-foreground">{event.clubName}</p>
-                      <h3 className="text-lg font-semibold mt-1">{event.name}</h3>
                       <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{event.description}</p>
                     </div>
-                    <Badge className="bg-green-100 text-green-800">
-                      Registered
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <Badge variant="secondary" className="text-xs">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      {format(new Date(event.date), "MMM d, yyyy")}
+                    </Badge>
+                    {event.time && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {event.time}
+                      </Badge>
+                    )}
+                    <Badge variant="secondary" className="text-xs">
+                      <MapPin className="w-3 h-3 mr-1" />
+                      {event.venue}
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      <Users className="w-3 h-3 mr-1" />
+                      {event.participants.length}/{event.expectedParticipants}
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 mt-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{format(new Date(event.date), "MMM d, yyyy")}</span>
-                    <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{event.time}</span>
-                    <span className="flex items-center gap-1"><MapPin className="w-4 h-4" />{event.venue}</span>
-                    <span className="flex items-center gap-1"><Users className="w-4 h-4" />{event.participants.length} / {event.expectedParticipants}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-6">
-                    <div className="text-sm">
-                      <p className="font-medium">{event.organizerName || event.clubName}</p>
-                      <p className="text-muted-foreground">Organizer</p>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">{event.organizerName || event.clubName}</span>
                     </div>
 
-                    <Button size="sm" variant="outline" onClick={() => setSelectedEvent(event)}>
+                    <Button
+                      onClick={() => setSelectedEvent(event)}
+                      className="shadow-sm"
+                      title="View detailed event information"
+                    >
                       <Eye className="w-4 h-4 mr-2" />
                       View Details
                     </Button>
@@ -164,8 +203,20 @@ const StudentDashboard: React.FC = () => {
               ))}
             </div>
           ) : (
-            <Card className="p-8 text-center">
-              <p className="text-muted-foreground">No upcoming events at the moment.</p>
+            <Card className="p-12 text-center border-dashed">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-blue-100 flex items-center justify-center">
+                <Calendar className="w-10 h-10 text-blue-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-2">No Upcoming Events</h3>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                There are no events available for registration right now. Check back later or explore all events to see what's coming up!
+              </p>
+              <Button variant="outline" asChild>
+                <Link to="/student/events">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Browse All Events
+                </Link>
+              </Button>
             </Card>
           )}
         </section>
@@ -180,7 +231,7 @@ const StudentDashboard: React.FC = () => {
                 <div className="grid grid-cols-1 gap-4">
                   {/* Event Title and Organizer Info */}
                   <div className="space-y-2">
-                    <DialogTitle className="text-2xl font-bold text-foreground leading-tight">
+                    <DialogTitle className="text-3xl font-bold text-foreground leading-tight">
                       {selectedEvent.name}
                     </DialogTitle>
                     <DialogDescription className="text-base text-muted-foreground flex items-center gap-2">
@@ -268,6 +319,12 @@ const StudentDashboard: React.FC = () => {
                         <div className="flex-1">
                           <p className="text-sm font-medium text-purple-700/70 mb-1">Participants</p>
                           <p className="text-foreground font-medium">{selectedEvent.participants.length} / {selectedEvent.expectedParticipants} registered</p>
+                          <p className="text-xs text-purple-600/70 mt-1">
+                            {selectedEvent.expectedParticipants - selectedEvent.participants.length > 0
+                              ? `${selectedEvent.expectedParticipants - selectedEvent.participants.length} seats remaining`
+                              : 'Event full'
+                            }
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -283,12 +340,12 @@ const StudentDashboard: React.FC = () => {
                       {selectedEvent.guestName && (
                         <div className="p-4 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-100/50 hover:shadow-md transition-all duration-200">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 bg-amber-100 rounded-lg">
-                              <User className="w-4 h-4 text-amber-600" />
+                            <div className="p-3 bg-amber-100 rounded-lg">
+                              <User className="w-5 h-5 text-amber-600" />
                             </div>
                             <div>
                               <p className="text-sm font-medium text-amber-700/70 mb-1">Guest Speaker</p>
-                              <p className="text-foreground font-semibold">{selectedEvent.guestName}</p>
+                              <p className="text-foreground font-semibold text-lg">{selectedEvent.guestName}</p>
                             </div>
                           </div>
                         </div>
@@ -313,12 +370,22 @@ const StudentDashboard: React.FC = () => {
                 {selectedEvent.status === 'venue_selected' &&
                  !selectedEvent.participants.some(p => p.studentId === user?.id) && (
                   <div className="pt-6 border-t border-border/50">
-                    <Button
-                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-                      onClick={() => setShowRegistration(true)}
-                    >
-                      Register for this Event
-                    </Button>
+                    <div className="flex gap-3">
+                      <Button
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                        onClick={() => setShowRegistration(true)}
+                      >
+                        Register Now
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="px-6 py-3 rounded-xl"
+                        onClick={() => {/* Add to calendar functionality */}}
+                        title="Add to Calendar"
+                      >
+                        📅
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
