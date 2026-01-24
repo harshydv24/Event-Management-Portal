@@ -68,6 +68,8 @@ export interface EventParticipant {
   studentName: string;
   studentUid: string;
   studentEmail: string;
+  studentBranch: string;
+  studentSec: string;
   registeredAt: string;
 }
 

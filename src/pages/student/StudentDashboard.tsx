@@ -9,9 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Clock, Users, User, Ticket } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, User, Ticket, Eye } from 'lucide-react';
 import { format } from 'date-fns';
-import { Event } from '@/types';
+import { Event, VENUES } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
 const StudentDashboard: React.FC = () => {
@@ -23,7 +23,7 @@ const StudentDashboard: React.FC = () => {
   
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showRegistration, setShowRegistration] = useState(false);
-  const [registrationData, setRegistrationData] = useState({ uid: '', email: '' });
+  const [registrationData, setRegistrationData] = useState({ uid: '', email: '', branch: '', sec: '' });
 
   // Get registered and upcoming events
   const registeredEvents = events.filter(e =>
@@ -44,6 +44,8 @@ const StudentDashboard: React.FC = () => {
       studentName: user.name,
       studentUid: registrationData.uid || user.uid || '',
       studentEmail: registrationData.email || user.email,
+      studentBranch: registrationData.branch,
+      studentSec: registrationData.sec,
     });
 
     toast({
@@ -53,7 +55,7 @@ const StudentDashboard: React.FC = () => {
 
     setShowRegistration(false);
     setSelectedEvent(null);
-    setRegistrationData({ uid: '', email: '' });
+    setRegistrationData({ uid: '', email: '', branch: '', sec: '' });
   };
 
   return (
@@ -100,16 +102,39 @@ const StudentDashboard: React.FC = () => {
         <section>
           <h2 className="text-2xl font-semibold text-slate-800 mb-4">My Registered Events</h2>
           {registeredEvents.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="space-y-4">
               {registeredEvents.map(event => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  onViewDetails={() => setSelectedEvent(event)}
-                  showActions={true}
-                  variant="student"
-                  isRegistered={true}
-                />
+                <Card key={event.id} className="p-6 hover:shadow-md transition">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground">{event.clubName}</p>
+                      <h3 className="text-lg font-semibold mt-1">{event.name}</h3>
+                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{event.description}</p>
+                    </div>
+                    <Badge className="bg-green-100 text-green-800">
+                      Registered
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 mt-4 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{format(new Date(event.date), "MMM d, yyyy")}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{event.time}</span>
+                    <span className="flex items-center gap-1"><MapPin className="w-4 h-4" />{event.venue}</span>
+                    <span className="flex items-center gap-1"><Users className="w-4 h-4" />{event.participants.length} / {event.expectedParticipants}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-6">
+                    <div className="text-sm">
+                      <p className="font-medium">{event.organizerName || event.clubName}</p>
+                      <p className="text-muted-foreground">Organizer</p>
+                    </div>
+
+                    <Button size="sm" variant="outline" onClick={() => setSelectedEvent(event)}>
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Details
+                    </Button>
+                  </div>
+                </Card>
               ))}
             </div>
           ) : (
@@ -148,16 +173,28 @@ const StudentDashboard: React.FC = () => {
 
       {/* Event Details Dialog */}
       <Dialog open={!!selectedEvent && !showRegistration} onOpenChange={() => setSelectedEvent(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           {selectedEvent && (
             <>
-              <DialogHeader>
-                <DialogTitle className="text-2xl">{selectedEvent.name}</DialogTitle>
-                <DialogDescription>Organized by {selectedEvent.clubName}</DialogDescription>
+              <DialogHeader className="relative pb-6 border-b border-border/50">
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Event Title and Organizer Info */}
+                  <div className="space-y-2">
+                    <DialogTitle className="text-2xl font-bold text-foreground leading-tight">
+                      {selectedEvent.name}
+                    </DialogTitle>
+                    <DialogDescription className="text-base text-muted-foreground flex items-center gap-2">
+                      <span className="inline-block w-1.5 h-1.5 bg-muted-foreground/50 rounded-full"></span>
+                      Organized by {selectedEvent.clubName}
+                    </DialogDescription>
+                  </div>
+                </div>
               </DialogHeader>
-              <div className="space-y-4">
+
+              <div className="space-y-8 mt-8">
+                {/* Poster */}
                 {selectedEvent.poster && (
-                  <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+                  <div className="aspect-video rounded-xl overflow-hidden bg-muted shadow-lg">
                     <img
                       src={selectedEvent.poster}
                       alt={selectedEvent.name}
@@ -165,43 +202,124 @@ const StudentDashboard: React.FC = () => {
                     />
                   </div>
                 )}
-                <p className="text-muted-foreground">{selectedEvent.description}</p>
-                <div className="grid grid-cols-2 gap-4">
+
+                {/* Description Section */}
+                <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-muted-foreground" />
-                    <span>{format(new Date(selectedEvent.date), 'MMMM d, yyyy')}</span>
+                    <div className="w-1 h-6 bg-primary rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-foreground">Event Description</h3>
                   </div>
-                  {selectedEvent.time && (
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-muted-foreground" />
-                      <span>{selectedEvent.time}</span>
-                    </div>
-                  )}
-                  {selectedEvent.venue && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-5 h-5 text-muted-foreground" />
-                      <span>{selectedEvent.venue}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-muted-foreground" />
-                    <span>{selectedEvent.participants.length} / {selectedEvent.expectedParticipants} registered</span>
+                  <div className="bg-gradient-to-br from-muted/30 to-muted/10 rounded-xl p-6 border border-border/30 shadow-sm">
+                    <p className="text-muted-foreground leading-relaxed text-base">{selectedEvent.description}</p>
                   </div>
-                  {selectedEvent.guestName && (
-                    <div className="flex items-center gap-2 col-span-2">
-                      <User className="w-5 h-5 text-muted-foreground" />
-                      <span>Guest: {selectedEvent.guestName}</span>
-                    </div>
-                  )}
                 </div>
-                {selectedEvent.status === 'venue_selected' && 
+
+                {/* Event Details Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Left Column - Event Details */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                      <h3 className="text-lg font-semibold text-foreground">Event Details</h3>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="group flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 rounded-xl border border-blue-100/50 hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
+                        <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                          <Calendar className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-blue-700/70 mb-1">Date</p>
+                          <p className="text-foreground font-medium">{format(new Date(selectedEvent.date), 'EEEE, MMMM d, yyyy')}</p>
+                        </div>
+                      </div>
+
+                      {selectedEvent.time && (
+                        <div className="group flex items-center gap-4 p-4 bg-gradient-to-r from-green-50/50 to-emerald-50/50 rounded-xl border border-green-100/50 hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
+                          <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                            <Clock className="w-5 h-5 text-green-600" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-green-700/70 mb-1">Time</p>
+                            <p className="text-foreground font-medium">{selectedEvent.time}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedEvent.venue && (
+                        <div className="group flex items-center gap-4 p-4 bg-gradient-to-r from-red-50/50 to-rose-50/50 rounded-xl border border-red-100/50 hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
+                          <div className="p-2 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
+                            <MapPin className="w-5 h-5 text-red-600" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-red-700/70 mb-1">Venue</p>
+                            <p className="text-foreground font-medium">{selectedEvent.venue}</p>
+                            <p className="text-xs text-red-600/70 mt-1">Capacity: {(() => {
+                              const venue = VENUES.find(v => v.name === selectedEvent.venue);
+                              return venue ? venue.capacity : 'N/A';
+                            })()} seats</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="group flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50/50 to-violet-50/50 rounded-xl border border-purple-100/50 hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
+                        <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                          <Users className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-purple-700/70 mb-1">Participants</p>
+                          <p className="text-foreground font-medium">{selectedEvent.participants.length} / {selectedEvent.expectedParticipants} registered</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column - Additional Information */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1 h-6 bg-amber-500 rounded-full"></div>
+                      <h3 className="text-lg font-semibold text-foreground">Additional Information</h3>
+                    </div>
+                    <div className="space-y-4">
+                      {selectedEvent.guestName && (
+                        <div className="p-4 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-100/50 hover:shadow-md transition-all duration-200">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-amber-100 rounded-lg">
+                              <User className="w-4 h-4 text-amber-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-amber-700/70 mb-1">Guest Speaker</p>
+                              <p className="text-foreground font-semibold">{selectedEvent.guestName}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="p-4 bg-gradient-to-r from-slate-50/50 to-gray-50/50 rounded-xl border border-slate-100/50 hover:shadow-md transition-all duration-200">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-slate-100 rounded-lg">
+                            <Users className="w-4 h-4 text-slate-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-slate-700/70 mb-1">Organizer</p>
+                            <p className="text-foreground font-medium">{selectedEvent.organizerName || selectedEvent.clubName}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Registration Button */}
+                {selectedEvent.status === 'venue_selected' &&
                  !selectedEvent.participants.some(p => p.studentId === user?.id) && (
-                  <Button 
-                    className="w-full" 
-                    onClick={() => setShowRegistration(true)}
-                  >
-                    Register for this Event
-                  </Button>
+                  <div className="pt-6 border-t border-border/50">
+                    <Button
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                      onClick={() => setShowRegistration(true)}
+                    >
+                      Register for this Event
+                    </Button>
+                  </div>
                 )}
               </div>
             </>
@@ -236,6 +354,24 @@ const StudentDashboard: React.FC = () => {
                 placeholder="Enter your email"
                 value={registrationData.email}
                 onChange={(e) => setRegistrationData(prev => ({ ...prev, email: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reg-branch">Branch</Label>
+              <Input
+                id="reg-branch"
+                placeholder="Enter your branch"
+                value={registrationData.branch}
+                onChange={(e) => setRegistrationData(prev => ({ ...prev, branch: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reg-sec">Section</Label>
+              <Input
+                id="reg-sec"
+                placeholder="Enter your section"
+                value={registrationData.sec}
+                onChange={(e) => setRegistrationData(prev => ({ ...prev, sec: e.target.value }))}
               />
             </div>
             <Button className="w-full" onClick={handleRegister}>
