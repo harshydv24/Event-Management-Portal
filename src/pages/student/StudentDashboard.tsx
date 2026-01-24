@@ -26,12 +26,12 @@ const StudentDashboard: React.FC = () => {
   const [registrationData, setRegistrationData] = useState({ uid: '', email: '' });
 
   // Get registered and upcoming events
-  const registeredEvents = events.filter(e => 
+  const registeredEvents = events.filter(e =>
     e.participants.some(p => p.studentId === user?.id)
   );
-  
-  const upcomingEvents = events.filter(e => 
-    e.status === 'venue_selected' && 
+
+  const upcomingEvents = events.filter(e =>
+    e.status === 'venue_selected' &&
     !e.participants.some(p => p.studentId === user?.id)
   );
 
@@ -108,6 +108,7 @@ const StudentDashboard: React.FC = () => {
                   onViewDetails={() => setSelectedEvent(event)}
                   showActions={true}
                   variant="student"
+                  isRegistered={true}
                 />
               ))}
             </div>

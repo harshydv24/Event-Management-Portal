@@ -12,6 +12,7 @@ interface EventCardProps {
   onRegister?: () => void;
   showActions?: boolean;
   variant?: 'student' | 'club' | 'department';
+  isRegistered?: boolean;
 }
 
 const statusColors: Record<string, string> = {
@@ -36,6 +37,7 @@ const EventCard: React.FC<EventCardProps> = ({
   onRegister,
   showActions = true,
   variant = 'student',
+  isRegistered = false,
 }) => {
   return (
     <Card className="portal-card overflow-hidden hover:shadow-lg transition-all duration-300">
@@ -89,7 +91,7 @@ const EventCard: React.FC<EventCardProps> = ({
           <Button variant="outline" className="flex-1" onClick={onViewDetails}>
             View Details
           </Button>
-          {variant === 'student' && event.status === 'venue_selected' && (
+          {variant === 'student' && event.status === 'venue_selected' && !isRegistered && (
             <Button className="flex-1" onClick={onRegister}>
               Register
             </Button>
