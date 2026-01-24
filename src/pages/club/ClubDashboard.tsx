@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useEvents } from '@/contexts/EventContext';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+
 import {
   Calendar,
   Users,
   Trophy,
   TrendingUp,
   ChevronRight,
+  ChevronLeft,
   Clock,
   Pencil
 } from 'lucide-react';
@@ -31,12 +33,49 @@ import { Label } from '@/components/ui/label';
 
 const monthLabel = (date: string) => format(new Date(date), 'MMM yyyy');
 
+const fallbackMembers = [
+  { name: "Yogesh Kumamr", designation: "Secretary", branch: "CSE", year: "3rd" },
+  { name: "Disha K", designation: "Joint Secretary", branch: "ECE", year: "3rd" },
+  { name: "Simran Kaur", designation: "UI/UX Designer", branch: "CSE", year: "2nd" },
+  { name: "Rohit Sharma", designation: "Events Head", branch: "ME", year: "3rd" },
+  { name: "Neha Gupta", designation: "Media Lead", branch: "CSE", year: "3rd" },
+  { name: "Aman Verma", designation: "CSE Student", branch: "CSE", year: "2nd" },
+  { name: "Jasleen Kaur", designation: "Planning Head", branch: "ECE", year: "3rd" },
+  { name: "Rohit Gupta", designation: "Co Events Head", branch: "ME", year: "2nd" },
+  { name: "Naina", designation: "PR Head", branch: "CSE", year: "3rd" },
+  { name: "Disha", designation: "Research Lead", branch: "ECE", year: "2nd" },
+];
+
 const ClubDashboard: React.FC = () => {
   const { events, clubs, createClub, updateClub } = useEvents();
   const { user } = useAuth();
   const [club, setClub] = useState<Club | null>(null);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [newMember, setNewMember] = useState({ name: '', uid: '', branch: '', year: '', designation: '' });
+
+  const marqueeRef = useRef<HTMLDivElement>(null);
+
+  const scrollLeft = () => {
+    const el = marqueeRef.current;
+    if (!el) return;
+    el.style.animationPlayState = "paused";
+    el.style.transform = "translateX(80px)";
+    setTimeout(() => {
+      el.style.transform = "translateX(0px)";
+      el.style.animationPlayState = "running";
+    }, 200);
+  };
+
+  const scrollRight = () => {
+    const el = marqueeRef.current;
+    if (!el) return;
+    el.style.animationPlayState = "paused";
+    el.style.transform = "translateX(-80px)";
+    setTimeout(() => {
+      el.style.transform = "translateX(0px)";
+      el.style.animationPlayState = "running";
+    }, 200);
+  };
 
   useEffect(() => {
     let existingClub = clubs.find(c => c.id === user?.clubId);
@@ -310,61 +349,77 @@ const ClubDashboard: React.FC = () => {
             </Dialog>
           </div>
 
-          <div className="overflow-hidden group relative py-2"
-            style={{
-              maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)"
-            }}
-          >
-            <div className="flex gap-6 whitespace-nowrap animate-scroll group-hover:[animation-play-state:paused]"
-                 key={club.coreTeam.length} // Force re-render when coreTeam changes
-            >
-
-              {(club.coreTeam && club.coreTeam.length > 0
-                ? [...club.coreTeam, ...club.coreTeam]
-                : [
-                    { name: "Yogesh Kumamr", designation: "Secretary", branch: "CSE", year: "3rd" },
-                    { name: "Disha K", designation: "Joint Secretary", branch: "ECE", year: "3rd" },
-                    { name: "Simran Kaur", designation: "UI/UX Designer", branch: "CSE", year: "2nd" },
-                    { name: "Rohit Sharma", designation: "Events Head", branch: "ME", year: "3rd" },
-                    { name: "Neha Gupta", designation: "Media Lead", branch: "CSE", year: "3rd" },
-                    { name: "Aman Verma", designation: "CSE Student", branch: "CSE", year: "2nd" },
-                    { name: "Jasleen Kaur", designation: "Planning Head", branch: "ECE", year: "3rd" },
-                    { name: "Rohit Gupta", designation: "Co Events Head", branch: "ME", year: "2nd" },
-                    { name: "Naina", designation: "PR Head", branch: "CSE", year: "3rd" },
-                    { name: "Disha", designation: "Research Lead", branch: "ECE", year: "2nd" },
-                  ]).map((m, i) => {
-                const initials = m.name.split(" ").map(s => s[0]).join("").toUpperCase().slice(0, 2);
-
-                return (
-                  <Card
-                    key={i}
-                    className="inline-flex flex-col justify-between min-w-[220px] max-w-[220px]
-                    backdrop-blur-sm bg-white/70 border rounded-xl px-4 py-5 shadow
-                    hover:shadow-xl hover:-translate-y-[2px] hover:scale-[1.03]
-                    transition duration-200 cursor-pointer"
-                  >
-                    <div className="flex items-center justify-center mb-2">
-                      <div className="w-12 h-12 bg-indigo-600 text-white flex items-center justify-center rounded-full text-sm font-medium shadow">
-                        {initials}
-                      </div>
-                    </div>
-
-                    <div className="text-center space-y-1">
-                      <div className="font-medium tracking-tight text-[15px]">{m.name}</div>
-                      <Badge variant="outline" className="text-[10px] tracking-wide px-2 py-[1px]">
-                        {m.designation}
-                      </Badge>
-                      {(m.branch || m.year) && (
-                        <div className="text-[11px] text-slate-600 mt-1 font-medium">
-                          {m.branch && m.year ? `${m.branch} ${m.year}` : m.branch || m.year}
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
+          {/* Core Team Scrolling */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
           </div>
+
+          <div className="relative py-2">
+            {/* Left Button */}
+            <button
+              onClick={scrollLeft}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 backdrop-blur-md shadow rounded-full p-2 hover:bg-white transition"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            <div
+              className="overflow-hidden group"
+              style={{
+                maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)"
+              }}
+            >
+              <div
+                ref={marqueeRef}
+                className="flex gap-6 whitespace-nowrap animate-scroll group-hover:[animation-play-state:paused]"
+                key={club.coreTeam.length}
+              >
+                {(club.coreTeam && club.coreTeam.length > 0
+                  ? [...club.coreTeam, ...club.coreTeam]
+                  : fallbackMembers
+                ).map((m, i) => {
+                  const initials = m.name.split(" ").map(s => s[0]).join("").toUpperCase().slice(0, 2);
+                  
+                  return (
+                    <Card
+                      key={i}
+                      className="inline-flex flex-col justify-between min-w-[220px] max-w-[220px]
+                      backdrop-blur-sm bg-white/70 border rounded-xl px-4 py-5 shadow
+                      hover:shadow-xl hover:-translate-y-[2px] hover:scale-[1.03]
+                      transition duration-200 cursor-pointer"
+                    >
+                      <div className="flex items-center justify-center mb-2">
+                        <div className="w-12 h-12 bg-indigo-600 text-white flex items-center justify-center rounded-full text-sm font-medium shadow">
+                          {initials}
+                        </div>
+                      </div>
+
+                      <div className="text-center space-y-1">
+                        <div className="font-medium tracking-tight text-[15px]">{m.name}</div>
+                        <Badge variant="outline" className="text-[10px] tracking-wide px-2 py-[1px]">
+                          {m.designation}
+                        </Badge>
+                        {(m.branch || m.year) && (
+                          <div className="text-[11px] text-slate-600 mt-1 font-medium">
+                            {m.branch && m.year ? `${m.branch} ${m.year}` : m.branch || m.year}
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Button */}
+            <button
+              onClick={scrollRight}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 backdrop-blur-md shadow rounded-full p-2 hover:bg-white transition"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </section>
         </section>
 
         {/* Timeline Events */}

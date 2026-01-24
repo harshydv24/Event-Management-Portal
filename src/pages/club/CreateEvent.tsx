@@ -154,11 +154,45 @@ const CreateEvent: React.FC = () => {
 
           <CardContent>
             <Tabs value={step} onValueChange={setStep}>
-              <TabsList className="grid grid-cols-3 w-full">
-                <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="documents">Documents</TabsTrigger>
-                <TabsTrigger value="review">Review</TabsTrigger>
-              </TabsList>
+              <TabsList className="grid grid-cols-3 w-full select-none pointer-events-none">
+              <TabsTrigger
+                value="details"
+                className={
+                  step === "details"
+                    ? "bg-indigo-600 text-white"
+                    : step === "documents" || step === "review"
+                    ? "bg-indigo-100 text-indigo-600"
+                    : ""
+                }
+              >
+                Details
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="documents"
+                className={
+                  step === "documents"
+                    ? "bg-indigo-600 text-white"
+                    : step === "review"
+                    ? "bg-indigo-100 text-indigo-600"
+                    : ""
+                }
+              >
+                Documents
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="review"
+                className={
+                  step === "review"
+                    ? "bg-indigo-600 text-white"
+                    : ""
+                }
+              >
+                Review
+              </TabsTrigger>
+            </TabsList>
+
 
               {/* STEP 1: EVENT DETAILS */}
               <TabsContent value="details">
@@ -235,7 +269,7 @@ const CreateEvent: React.FC = () => {
                     className="mt-4 w-full"
                     onClick={() => setStep("documents")}
                   >
-                    Next: Documents
+                    Upload Documents
                   </Button>
                 </div>
               </TabsContent>
