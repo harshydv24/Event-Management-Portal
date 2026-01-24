@@ -42,10 +42,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (email: string, password: string, role: UserRole): Promise<boolean> => {
     const users = getStoredUsers();
-    const key = `${email}_${role}`;
+    const key = `${email.trim()}_${role}`;
     const storedUser = users[key];
 
-    if (storedUser && storedUser.password === password) {
+    if (storedUser && storedUser.password === password.trim()) {
       const { password: _, ...userWithoutPassword } = storedUser;
       setUser(userWithoutPassword);
       localStorage.setItem(SESSION_KEY, JSON.stringify(userWithoutPassword));
@@ -55,15 +55,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const signup = async (
-    email: string, 
-    password: string, 
-    name: string, 
-    role: UserRole, 
+    email: string,
+    password: string,
+    name: string,
+    role: UserRole,
     uid?: string,
-    depId?: string,
     ): Promise<boolean> => {
     const users = getStoredUsers();
-    const key = `${email}_${role}`;
+    const key = `${email.trim()}_${role}`;
 
     if (users[key]) {
       return false; // User already exists
@@ -71,13 +70,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const newUser: User & { password: string } = {
       id: crypto.randomUUID(),
-      email,
-      password,
-      name,
+      email: email.trim(),
+      password: password.trim(),
+      name: name.trim(),
       role,
-      uid: role === 'student' ? uid : undefined,
+      uid: role === 'student' ? uid?.trim() : undefined,
       clubId: role === 'club' ? crypto.randomUUID() : undefined,
-      depId: role === 'department' ? crypto.randomUUID() : undefined, //fixed for now
     };
 
     users[key] = newUser;

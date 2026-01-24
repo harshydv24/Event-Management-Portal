@@ -15,8 +15,10 @@ import { Event } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
 const StudentDashboard: React.FC = () => {
-  const { events, registerForEvent } = useEvents();
+  const { events = [], registerForEvent } = useEvents();
+
   const { user } = useAuth();
+
   const { toast } = useToast();
   
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
