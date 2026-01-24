@@ -52,12 +52,17 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-If you liked our project do give it a star. 
+If you liked our project do give it a star.
+
 If you think thre can be some changes in our file or needs some improvement do fork and give a pull request we will check your work and add to our main file if your work is good.
 
-** Project Members: **
+**Project Members:**
 - [Harsimran Singh](https://github.com/harsimran151) <span style="color: #6a737d;">TL (Project Manager if terms of corporate word lol) </span>
+
 - [Harsh Yadav](https://github.com/harshydv24)
+
 - [Raushan](https://github.com/raushan8032)
+
 - [Sangam](https://github.com/Sangamk27)
+
 - [Rishabh Paudel](https://github.com/rishabh-24bcs10110) <span style="color: #6a737d;">Yeah thats me who did all the work and still kept my name at the end lol</span>
