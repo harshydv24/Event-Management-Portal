@@ -14,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Clock, Users, User, Ticket, Eye, Plus, Minus } from 'lucide-react';
 import { format } from 'date-fns';
-import { Event, VENUES } from '@/types';
+import { Event, VENUES, EventParticipant } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
 const StudentDashboard: React.FC = () => {
@@ -23,7 +23,7 @@ const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
 
   const { toast } = useToast();
-  
+
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showRegistration, setShowRegistration] = useState(false);
   const [registrationType, setRegistrationType] = useState<'individual' | 'team'>('individual');
@@ -305,7 +305,7 @@ const StudentDashboard: React.FC = () => {
         <section>
           <h2 className="text-2xl font-semibold text-slate-800 mb-4">Upcoming Events</h2>
           {upcomingEvents.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="space-y-4">
               {upcomingEvents.map(event => (
                 <EventCard
                   key={event.id}

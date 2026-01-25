@@ -26,7 +26,7 @@ const ProtectedRoute = ({ children, role }: { children: React.ReactNode; role: s
 
 const AppRoutes = () => {
   const { user } = useAuth();
-  
+
   return (
     <Routes>
       <Route path="/" element={user ? <Navigate to={`/${user.role}`} replace /> : <LoginPage />} />
@@ -36,6 +36,7 @@ const AppRoutes = () => {
       <Route path="/club/create-event" element={<ProtectedRoute role="club"><CreateEvent /></ProtectedRoute>} />
       <Route path="/club/events" element={<ProtectedRoute role="club"><ClubEvents /></ProtectedRoute>} />
       <Route path="/department" element={<ProtectedRoute role="department"><DepartmentDashboard /></ProtectedRoute>} />
+      <Route path="/department/clubs" element={<ProtectedRoute role="department"><DepartmentDashboard /></ProtectedRoute>} />
       <Route path="/department/pending" element={<ProtectedRoute role="department"><DepartmentDashboard /></ProtectedRoute>} />
       <Route path="/department/approved" element={<ProtectedRoute role="department"><DepartmentDashboard /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />

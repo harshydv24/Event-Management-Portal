@@ -4,6 +4,7 @@ import { type LucideIcon } from "lucide-react";
 
 
 import React, { useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,11 +18,14 @@ import { useEvents } from "@/contexts/EventContext";
 import { useToast } from "@/hooks/use-toast";
 import { Event } from "@/types";
 
-type TabType = "all" | "pending" | "approved" | "rejected" | "clubs";
+type TabType = "all" | "pending" | "approved" | "rejected";
 
 const DepartmentDashboard: React.FC = () => {
   const { events, approveEvent, rejectEvent } = useEvents();
   const { toast } = useToast();
+  const location = useLocation();
+
+  const isClubsPage = location.pathname === "/department/clubs";
 
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -42,7 +46,7 @@ const DepartmentDashboard: React.FC = () => {
 
   const clubStats = useMemo(() => {
     const clubMap = new Map<string, { name: string; totalEvents: number; pendingEvents: number; approvedEvents: number; rejectedEvents: number; }>();
-    
+
     events.forEach(event => {
       const clubName = event.clubName || event.departmentName || 'Unknown Club';
       if (!clubMap.has(clubName)) {
@@ -54,15 +58,15 @@ const DepartmentDashboard: React.FC = () => {
           rejectedEvents: 0,
         });
       }
-      
+
       const club = clubMap.get(clubName)!;
       club.totalEvents++;
-      
+
       if (event.status === "pending_approval") club.pendingEvents++;
       else if (event.status === "approved" || event.status === "venue_selected") club.approvedEvents++;
       else if (event.status === "rejected") club.rejectedEvents++;
     });
-    
+
     return Array.from(clubMap.values()).sort((a, b) => b.totalEvents - a.totalEvents);
   }, [events]);
 
@@ -89,327 +93,405 @@ const DepartmentDashboard: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-8 animate-fade-in">
 
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-semibold">Events Approval</h1>
-          <p className="text-muted-foreground">Department Management Portal</p>
+          <h1 className="text-3xl font-semibold">{isClubsPage ? "Registered Clubs" : "Events Approval"}</h1>
+          <p className="text-muted-foreground">{isClubsPage ? "Overview of all registered clubs and their event activity" : "Department Management Portal"}</p>
         </div>
 
-        {/* Stats */}
-       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-  <StatCard
-    label="Total Events"
-    value={stats.total}
-    color="text-blue-600"
-    icon={CalendarCheck}
-  />
-  <StatCard
-    label="Pending Review"
-    value={stats.pending}
-    color="text-amber-600"
-    icon={Hourglass}
-  />
-  <StatCard
-    label="Approved"
-    value={stats.approved}
-    color="text-green-600"
-    icon={CheckCircle2}
-  />
-  <StatCard
-    label="Rejected"
-    value={stats.rejected}
-    color="text-red-600"
-    icon={XCircle}
-  />
-  <StatCard
-    label="Registered Clubs"
-    value={clubStats.length}
-    color="text-purple-600"
-    icon={Users}
-    // onClick={() => setActiveTab("clubs")}
-  />
-</div>
+        {/* Stats - shown only on events page */}
+        {!isClubsPage && (
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <StatCard
+              label="Total Events"
+              value={stats.total}
+              color="text-blue-600"
+              icon={CalendarCheck}
+            />
+            <StatCard
+              label="Pending Review"
+              value={stats.pending}
+              color="text-amber-600"
+              icon={Hourglass}
+            />
+            <StatCard
+              label="Approved"
+              value={stats.approved}
+              color="text-green-600"
+              icon={CheckCircle2}
+            />
+            <StatCard
+              label="Rejected"
+              value={stats.rejected}
+              color="text-red-600"
+              icon={XCircle}
+            />
+            <StatCard
+              label="Registered Clubs"
+              value={clubStats.length}
+              color="text-purple-600"
+              icon={Users}
+            />
+          </div>
+        )}
 
 
-        {/* Filters */}
-        <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as TabType)}>
-          <TabsList className="bg-muted/40">
-            <TabsTrigger value="all">All ({stats.total})</TabsTrigger>
-            <TabsTrigger value="pending">Pending ({stats.pending})</TabsTrigger>
-            <TabsTrigger value="approved">Approved ({stats.approved})</TabsTrigger>
-            <TabsTrigger value="rejected">Rejected ({stats.rejected})</TabsTrigger>
-            <TabsTrigger value="clubs">All Registered Clubs ({clubStats.length})</TabsTrigger>
-          </TabsList>
+        {/* Events Tabs - shown only on events page */}
+        {!isClubsPage && (
+          <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as TabType)}>
+            <TabsList className="bg-muted/40">
+              <TabsTrigger value="all">All ({stats.total})</TabsTrigger>
+              <TabsTrigger value="pending">Pending ({stats.pending})</TabsTrigger>
+              <TabsTrigger value="approved">Approved ({stats.approved})</TabsTrigger>
+              <TabsTrigger value="rejected">Rejected ({stats.rejected})</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="all" className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredEvents.length > 0 ? (
-              filteredEvents.map(ev => (
-                <Card key={ev.id} className="p-6 hover:shadow-md transition">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">{ev.departmentName || ev.clubName}</p>
-                      <h3 className="text-lg font-semibold mt-1">{ev.name}</h3>
-                    </div>
-                    <StatusBadge status={ev.status} />
-                  </div>
-
-                  <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{ev.description}</p>
-
-                  <div className="grid grid-cols-2 gap-3 mt-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{format(new Date(ev.date), "MMM d, yyyy")}</span>
-                    <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{ev.time}</span>
-                    <span className="flex items-center gap-1"><MapPin className="w-4 h-4" />{ev.venue}</span>
-                    <span className="flex items-center gap-1"><Users className="w-4 h-4" />{ev.expectedParticipants}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-6">
-                    <div className="text-sm">
-                      <p className="font-medium">{ev.organizerName || 'Unknown Organizer'}</p>
-                      <p className="text-muted-foreground">Organizer</p>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => setSelectedEvent(ev)}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      {ev.status === "pending_approval" && (
-                        <>
-                          <Button size="sm" className="bg-success hover:bg-success/90" onClick={() => handleApprove(ev)}>
-                            <Check className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="destructive" onClick={() => { setSelectedEvent(ev); setRejectOpen(true); }}>
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              ))
-            ) : (
-              <Card className="col-span-full p-8 text-center">
-                <p className="text-muted-foreground">No events found.</p>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="pending" className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredEvents.length > 0 ? (
-              filteredEvents.map(ev => (
-                <Card key={ev.id} className="p-6 hover:shadow-md transition">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">{ev.departmentName || ev.clubName}</p>
-                      <h3 className="text-lg font-semibold mt-1">{ev.name}</h3>
-                    </div>
-                    <StatusBadge status={ev.status} />
-                  </div>
-
-                  <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{ev.description}</p>
-
-                  <div className="grid grid-cols-2 gap-3 mt-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{format(new Date(ev.date), "MMM d, yyyy")}</span>
-                    <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{ev.time}</span>
-                    <span className="flex items-center gap-1"><MapPin className="w-4 h-4" />{ev.venue}</span>
-                    <span className="flex items-center gap-1"><Users className="w-4 h-4" />{ev.expectedParticipants}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-6">
-                    <div className="text-sm">
-                      <p className="font-medium">{ev.organizerName || 'Unknown Organizer'}</p>
-                      <p className="text-muted-foreground">Organizer</p>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => setSelectedEvent(ev)}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      {ev.status === "pending_approval" && (
-                        <>
-                          <Button size="sm" className="bg-success hover:bg-success/90" onClick={() => handleApprove(ev)}>
-                            <Check className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="destructive" onClick={() => { setSelectedEvent(ev); setRejectOpen(true); }}>
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              ))
-            ) : (
-              <Card className="col-span-full p-8 text-center">
-                <p className="text-muted-foreground">No pending events to review.</p>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="approved" className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredEvents.length > 0 ? (
-              filteredEvents.map(ev => (
-                <Card key={ev.id} className="p-6 hover:shadow-md transition">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">{ev.departmentName || ev.clubName}</p>
-                      <h3 className="text-lg font-semibold mt-1">{ev.name}</h3>
-                    </div>
-                    <StatusBadge status={ev.status} />
-                  </div>
-
-                  <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{ev.description}</p>
-
-                  <div className="grid grid-cols-2 gap-3 mt-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{format(new Date(ev.date), "MMM d, yyyy")}</span>
-                    <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{ev.time}</span>
-                    <span className="flex items-center gap-1"><MapPin className="w-4 h-4" />{ev.venue}</span>
-                    <span className="flex items-center gap-1"><Users className="w-4 h-4" />{ev.expectedParticipants}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-6">
-                    <div className="text-sm">
-                      <p className="font-medium">{ev.organizerName || 'Unknown Organizer'}</p>
-                      <p className="text-muted-foreground">Organizer</p>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => setSelectedEvent(ev)}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))
-            ) : (
-              <Card className="col-span-full p-8 text-center">
-                <p className="text-muted-foreground">No approved events.</p>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="rejected" className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredEvents.length > 0 ? (
-              filteredEvents.map(ev => (
-                <Card key={ev.id} className="p-6 hover:shadow-md transition">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">{ev.departmentName || ev.clubName}</p>
-                      <h3 className="text-lg font-semibold mt-1">{ev.name}</h3>
-                    </div>
-                    <StatusBadge status={ev.status} />
-                  </div>
-
-                  <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{ev.description}</p>
-
-                  <div className="grid grid-cols-2 gap-3 mt-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{format(new Date(ev.date), "MMM d, yyyy")}</span>
-                    <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{ev.time}</span>
-                    <span className="flex items-center gap-1"><MapPin className="w-4 h-4" />{ev.venue}</span>
-                    <span className="flex items-center gap-1"><Users className="w-4 h-4" />{ev.expectedParticipants}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-6">
-                    <div className="text-sm">
-                      <p className="font-medium">{ev.organizerName || 'Unknown Organizer'}</p>
-                      <p className="text-muted-foreground">Organizer</p>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => setSelectedEvent(ev)}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))
-            ) : (
-              <Card className="col-span-full p-8 text-center">
-                <p className="text-muted-foreground">No rejected events.</p>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="clubs" className="mt-2">
-            <div className="space-y-6">
-              {/* Total Clubs Summary */}
-              <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-2xl font-bold text-blue-900">All Registered Clubs</h3>
-                    <p className="text-blue-700 mt-1">Complete overview of all active clubs and their event activity</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-4xl font-bold text-blue-600">{clubStats.length}</div>
-                    <p className="text-sm text-blue-500">Total Clubs</p>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Clubs Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {clubStats.map((club, index) => (
-                  <Card key={club.name} className="p-6 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-                    <div className="space-y-4">
-                      {/* Club Header */}
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center text-lg font-bold text-primary border-2 border-primary/20">
-                          {index + 1}
+            <TabsContent value="all" className="mt-2 space-y-4">
+              {filteredEvents.length > 0 ? (
+                filteredEvents.map(ev => (
+                  <Card key={ev.id} className="p-6 hover:shadow-lg transition-all duration-300 hover:scale-[1.01]">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-lg font-semibold">{ev.name}</h3>
+                          <StatusBadge status={ev.status} />
                         </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-foreground">{club.name}</h3>
-                          <p className="text-sm text-muted-foreground">Registered Club</p>
-                        </div>
+                        <p className="text-sm text-muted-foreground">{ev.departmentName || ev.clubName}</p>
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{ev.description}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <Badge variant="secondary" className="text-xs">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        {format(new Date(ev.date), "MMM d, yyyy")}
+                      </Badge>
+                      {ev.time && (
+                        <Badge variant="secondary" className="text-xs">
+                          <Clock className="w-3 h-3 mr-1" />
+                          {ev.time}
+                        </Badge>
+                      )}
+                      {ev.venue && (
+                        <Badge variant="secondary" className="text-xs">
+                          <MapPin className="w-3 h-3 mr-1" />
+                          {ev.venue}
+                        </Badge>
+                      )}
+                      <Badge variant="secondary" className="text-xs">
+                        <Users className="w-3 h-3 mr-1" />
+                        {ev.participants?.length || 0}/{ev.expectedParticipants}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">{ev.organizerName || 'Unknown Organizer'}</span>
                       </div>
 
-                      {/* Event Statistics */}
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-blue-50 rounded-lg p-3 text-center">
-                            <div className="text-2xl font-bold text-blue-600">{club.totalEvents}</div>
-                            <div className="text-xs text-blue-500 font-medium">Total Events</div>
-                          </div>
-                          <div className="bg-green-50 rounded-lg p-3 text-center">
-                            <div className="text-2xl font-bold text-green-600">{club.approvedEvents}</div>
-                            <div className="text-xs text-green-500 font-medium">Approved</div>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-amber-50 rounded-lg p-3 text-center">
-                            <div className="text-2xl font-bold text-amber-600">{club.pendingEvents}</div>
-                            <div className="text-xs text-amber-500 font-medium">Pending</div>
-                          </div>
-                          <div className="bg-red-50 rounded-lg p-3 text-center">
-                            <div className="text-2xl font-bold text-red-600">{club.rejectedEvents}</div>
-                            <div className="text-xs text-red-500 font-medium">Rejected</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Activity Status */}
-                      <div className="pt-2 border-t border-border/50">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Activity Status</span>
-                          <Badge variant={club.totalEvents > 0 ? "success" : "secondary"}>
-                            {club.totalEvents > 0 ? "Active" : "Inactive"}
-                          </Badge>
-                        </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => setSelectedEvent(ev)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Details
+                        </Button>
+                        {ev.status === "pending_approval" && (
+                          <>
+                            <Button className="bg-success hover:bg-success/90" onClick={() => handleApprove(ev)}>
+                              <Check className="w-4 h-4 mr-2" />
+                              Approve
+                            </Button>
+                            <Button variant="destructive" onClick={() => { setSelectedEvent(ev); setRejectOpen(true); }}>
+                              <X className="w-4 h-4 mr-2" />
+                              Reject
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </Card>
-                ))}
-              </div>
-
-              {clubStats.length === 0 && (
-                <Card className="col-span-full p-8 text-center">
-                  <p className="text-muted-foreground">No clubs found.</p>
+                ))
+              ) : (
+                <Card className="p-8 text-center">
+                  <p className="text-muted-foreground">No events found.</p>
                 </Card>
               )}
+            </TabsContent>
+
+            <TabsContent value="pending" className="mt-2 space-y-4">
+              {filteredEvents.length > 0 ? (
+                filteredEvents.map(ev => (
+                  <Card key={ev.id} className="p-6 hover:shadow-lg transition-all duration-300 hover:scale-[1.01]">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-lg font-semibold">{ev.name}</h3>
+                          <StatusBadge status={ev.status} />
+                        </div>
+                        <p className="text-sm text-muted-foreground">{ev.departmentName || ev.clubName}</p>
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{ev.description}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <Badge variant="secondary" className="text-xs">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        {format(new Date(ev.date), "MMM d, yyyy")}
+                      </Badge>
+                      {ev.time && (
+                        <Badge variant="secondary" className="text-xs">
+                          <Clock className="w-3 h-3 mr-1" />
+                          {ev.time}
+                        </Badge>
+                      )}
+                      {ev.venue && (
+                        <Badge variant="secondary" className="text-xs">
+                          <MapPin className="w-3 h-3 mr-1" />
+                          {ev.venue}
+                        </Badge>
+                      )}
+                      <Badge variant="secondary" className="text-xs">
+                        <Users className="w-3 h-3 mr-1" />
+                        {ev.participants?.length || 0}/{ev.expectedParticipants}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">{ev.organizerName || 'Unknown Organizer'}</span>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => setSelectedEvent(ev)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Details
+                        </Button>
+                        <Button className="bg-success hover:bg-success/90" onClick={() => handleApprove(ev)}>
+                          <Check className="w-4 h-4 mr-2" />
+                          Approve
+                        </Button>
+                        <Button variant="destructive" onClick={() => { setSelectedEvent(ev); setRejectOpen(true); }}>
+                          <X className="w-4 h-4 mr-2" />
+                          Reject
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              ) : (
+                <Card className="p-8 text-center">
+                  <p className="text-muted-foreground">No pending events to review.</p>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="approved" className="mt-2 space-y-4">
+              {filteredEvents.length > 0 ? (
+                filteredEvents.map(ev => (
+                  <Card key={ev.id} className="p-6 hover:shadow-lg transition-all duration-300 hover:scale-[1.01]">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-lg font-semibold">{ev.name}</h3>
+                          <StatusBadge status={ev.status} />
+                        </div>
+                        <p className="text-sm text-muted-foreground">{ev.departmentName || ev.clubName}</p>
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{ev.description}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <Badge variant="secondary" className="text-xs">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        {format(new Date(ev.date), "MMM d, yyyy")}
+                      </Badge>
+                      {ev.time && (
+                        <Badge variant="secondary" className="text-xs">
+                          <Clock className="w-3 h-3 mr-1" />
+                          {ev.time}
+                        </Badge>
+                      )}
+                      {ev.venue && (
+                        <Badge variant="secondary" className="text-xs">
+                          <MapPin className="w-3 h-3 mr-1" />
+                          {ev.venue}
+                        </Badge>
+                      )}
+                      <Badge variant="secondary" className="text-xs">
+                        <Users className="w-3 h-3 mr-1" />
+                        {ev.participants?.length || 0}/{ev.expectedParticipants}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">{ev.organizerName || 'Unknown Organizer'}</span>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => setSelectedEvent(ev)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Details
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              ) : (
+                <Card className="p-8 text-center">
+                  <p className="text-muted-foreground">No approved events.</p>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="rejected" className="mt-2 space-y-4">
+              {filteredEvents.length > 0 ? (
+                filteredEvents.map(ev => (
+                  <Card key={ev.id} className="p-6 hover:shadow-lg transition-all duration-300 hover:scale-[1.01]">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-lg font-semibold">{ev.name}</h3>
+                          <StatusBadge status={ev.status} />
+                        </div>
+                        <p className="text-sm text-muted-foreground">{ev.departmentName || ev.clubName}</p>
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{ev.description}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <Badge variant="secondary" className="text-xs">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        {format(new Date(ev.date), "MMM d, yyyy")}
+                      </Badge>
+                      {ev.time && (
+                        <Badge variant="secondary" className="text-xs">
+                          <Clock className="w-3 h-3 mr-1" />
+                          {ev.time}
+                        </Badge>
+                      )}
+                      {ev.venue && (
+                        <Badge variant="secondary" className="text-xs">
+                          <MapPin className="w-3 h-3 mr-1" />
+                          {ev.venue}
+                        </Badge>
+                      )}
+                      <Badge variant="secondary" className="text-xs">
+                        <Users className="w-3 h-3 mr-1" />
+                        {ev.participants?.length || 0}/{ev.expectedParticipants}
+                      </Badge>
+                    </div>
+
+                    {ev.feedback && (
+                      <div className="mb-4 text-xs rounded-md bg-red-50 border border-red-200 text-red-700 p-3">
+                        <span className="font-medium">Rejection Feedback: </span>
+                        {ev.feedback}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">{ev.organizerName || 'Unknown Organizer'}</span>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => setSelectedEvent(ev)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Details
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              ) : (
+                <Card className="p-8 text-center">
+                  <p className="text-muted-foreground">No rejected events.</p>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
+        )}
+
+        {/* Clubs Content - shown only on clubs page */}
+        {isClubsPage && (
+          <div className="space-y-6">
+            {/* Total Clubs Summary */}
+            <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-bold text-blue-900">All Registered Clubs</h3>
+                  <p className="text-blue-700 mt-1">Complete overview of all active clubs and their event activity</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-4xl font-bold text-blue-600">{clubStats.length}</div>
+                  <p className="text-sm text-blue-500">Total Clubs</p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Clubs Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {clubStats.map((club, index) => (
+                <Card key={club.name} className="p-6 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                  <div className="space-y-4">
+                    {/* Club Header */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center text-lg font-bold text-primary border-2 border-primary/20">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-foreground">{club.name}</h3>
+                        <p className="text-sm text-muted-foreground">Registered Club</p>
+                      </div>
+                    </div>
+
+                    {/* Event Statistics */}
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-blue-50 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-blue-600">{club.totalEvents}</div>
+                          <div className="text-xs text-blue-500 font-medium">Total Events</div>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-green-600">{club.approvedEvents}</div>
+                          <div className="text-xs text-green-500 font-medium">Approved</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-amber-50 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-amber-600">{club.pendingEvents}</div>
+                          <div className="text-xs text-amber-500 font-medium">Pending</div>
+                        </div>
+                        <div className="bg-red-50 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-red-600">{club.rejectedEvents}</div>
+                          <div className="text-xs text-red-500 font-medium">Rejected</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Activity Status */}
+                    <div className="pt-2 border-t border-border/50">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Activity Status</span>
+                        <Badge variant={club.totalEvents > 0 ? "success" : "secondary"}>
+                          {club.totalEvents > 0 ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
             </div>
-          </TabsContent>
-        </Tabs>
+
+            {clubStats.length === 0 && (
+              <Card className="col-span-full p-8 text-center">
+                <p className="text-muted-foreground">No clubs found.</p>
+              </Card>
+            )}
+          </div>
+        )}
       </div>
 
       {/* View Dialog */}
@@ -651,5 +733,5 @@ const StatusBadge = ({ status }: { status: string }) => {
     rejected: "destructive",
   };
   return <Badge variant={map[status] || "secondary"}>{status.replace("_", " ")}</Badge>;
-  
+
 };
