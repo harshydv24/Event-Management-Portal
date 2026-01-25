@@ -98,7 +98,7 @@ const DepartmentDashboard: React.FC = () => {
         </div>
 
         {/* Stats */}
-       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
   <StatCard
     label="Total Events"
     value={stats.total}
@@ -122,6 +122,13 @@ const DepartmentDashboard: React.FC = () => {
     value={stats.rejected}
     color="text-red-600"
     icon={XCircle}
+  />
+  <StatCard
+    label="Registered Clubs"
+    value={clubStats.length}
+    color="text-purple-600"
+    icon={Users}
+    onClick={() => setActiveTab("clubs")}
   />
 </div>
 
@@ -616,13 +623,15 @@ const StatCard = ({
   value,
   color,
   icon: Icon,
+  onClick,
 }: {
   label: string;
   value: number;
   color: string;
   icon: LucideIcon;
+  onClick?: () => void;
 }) => (
-  <Card className="p-6 flex items-center gap-4">
+  <Card className={`p-6 flex items-center gap-4 ${onClick ? 'cursor-pointer hover:shadow-md transition' : ''}`} onClick={onClick}>
     <div className="p-3 rounded-lg bg-muted">
       <Icon className={`w-6 h-6 ${color}`} />
     </div>

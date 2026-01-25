@@ -64,7 +64,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-<header className="bg-primary text-primary-foreground shadow-sm">
+<header className="bg-primary/90 text-primary-foreground shadow-sm sticky top-0 z-50 backdrop-blur-md">
   <div className="container mx-auto px-4 py-4 flex items-center justify-between">
     <div className="flex items-center gap-3">
       <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -80,12 +80,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       </div>
     </div>
 
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2">
       {/* Notification Bell */}
       <Button
         variant="ghost"
         size="sm"
-        className="text-white hover:bg-white/20 relative"
+        className="text-white bg-white/10 hover:bg-white/30 relative rounded-full w-9 h-9 p-0 flex items-center justify-center border border-white/30"
         title="Notifications"
       >
         <Bell className="w-4 h-4" />
@@ -93,17 +93,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
       </Button>
 
-      {/* Enhanced Theme Toggle */}
-      <div className="flex items-center gap-2">
-        <ThemeToggle />
-      </div>
+      <ThemeToggle />
 
       <Button
         variant="ghost"
-        className="text-white hover:bg-white/20"
+        className="text-white bg-white/10 hover:bg-white/30 w-24 h-9 p-0 border border-white/30"
         onClick={logout}
       >
-        <LogOut className="w-4 h-4 mr-2" />
+        <LogOut className="w-0 h-0 mr-0" />
         Logout
       </Button>
     </div>

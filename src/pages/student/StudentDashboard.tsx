@@ -384,18 +384,18 @@ const StudentDashboard: React.FC = () => {
                   <div className="pt-6 border-t border-border/50">
                     <div className="flex gap-3">
                       <Button
-                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                        className="flex-1 bg-gradient-to-r indigo-600 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                         onClick={() => setShowRegistration(true)}
                       >
                         Register Now
                       </Button>
                       <Button
                         variant="outline"
-                        className="px-6 py-3 rounded-xl"
+                        className="px-3 py-3 rounded-xl"
                         onClick={() => {/* Add to calendar functionality */}}
                         title="Add to Calendar"
                       >
-                        📅
+                        <Calendar className="w-5 h-5 text-black-600" />
                       </Button>
                     </div>
                   </div>

@@ -21,7 +21,9 @@ import {
   Upload,
   Loader2,
   Eye,
-  Trash2
+  Trash2,
+  ArrowLeft,
+  AlertTriangle
 } from "lucide-react";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -46,6 +48,13 @@ const CreateEvent: React.FC = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [previewPdf, setPreviewPdf] = useState<string | null>(null);
 
+  // Validation state for each section
+  const [sectionValidation, setSectionValidation] = useState({
+    details: null as 'valid' | 'invalid' | null,
+    documents: null as 'valid' | 'invalid' | null,
+    review: null as 'valid' | 'invalid' | null
+  });
+
   const [uploading, setUploading] = useState({
     proposal: false,
     m2m: false
@@ -65,7 +74,95 @@ const CreateEvent: React.FC = () => {
 
   const club = clubs.find((c) => c.id === user?.clubId) || clubs[0];
 
-  // Mock Upload Function
+  // Validation functions
+  const validateDetails = () => {
+    const { name, description, date, expectedParticipants } = formData;
+    return name.trim() !== '' && 
+           description.trim() !== '' && 
+           date !== '' && 
+           expectedParticipants !== '' && 
+           !isNaN(Number(expectedParticipants)) && 
+           Number(expectedParticipants) > 0;
+  };
+
+  const validateDocuments = () => {
+    // Documents are optional for now, but we can add validation later if needed
+    return true;
+  };
+
+  // Function to validate and navigate to next step
+  const validateAndNavigate = (fromSection: string, toSection: string) => {
+    let isValid = false;
+
+    if (fromSection === 'details') {
+      isValid = validateDetails();
+    } else if (fromSection === 'documents') {
+      isValid = validateDocuments();
+    }
+
+    // Update validation state for the current section
+    setSectionValidation(prev => ({
+      ...prev,
+      [fromSection]: isValid ? 'valid' : 'invalid'
+    }));
+
+    // Navigate to next section
+    setStep(toSection);
+  };
+
+  // Comprehensive validation for final submission
+  const validateAllSections = () => {
+    const missingFields: { [key: string]: string[] } = {};
+
+    // Validate Details section
+    const detailsMissing: string[] = [];
+    if (!formData.name.trim()) detailsMissing.push("Event Name");
+    if (!formData.description.trim()) detailsMissing.push("Description");
+    if (!formData.date) detailsMissing.push("Date");
+    if (!formData.expectedParticipants || isNaN(Number(formData.expectedParticipants)) || Number(formData.expectedParticipants) <= 0) {
+      detailsMissing.push("Expected Participants");
+    }
+    if (detailsMissing.length > 0) {
+      missingFields["Details"] = detailsMissing;
+    }
+
+    // Validate Documents section (optional for now, but can be made mandatory)
+    // const documentsMissing: string[] = [];
+    // if (!formData.proposalUrl) documentsMissing.push("Proposal PDF");
+    // if (!formData.m2mUrl) documentsMissing.push("M2M PDF");
+    // if (documentsMissing.length > 0) {
+    //   missingFields["Documents"] = documentsMissing;
+    // }
+
+    return {
+      isValid: Object.keys(missingFields).length === 0,
+      missingFields
+    };
+  };
+
+  // Handle pre-submission validation
+  const handlePreSubmitValidation = () => {
+    const validation = validateAllSections();
+
+    if (!validation.isValid) {
+      // Create detailed error message
+      const errorMessages: string[] = [];
+      Object.entries(validation.missingFields).forEach(([section, fields]) => {
+        errorMessages.push(`${section}: ${fields.join(", ")}`);
+      });
+
+      toast({
+        title: "Missing Mandatory Details",
+        description: errorMessages.join(" • "),
+        variant: "destructive",
+        duration: 6000, // Show for 6 seconds
+      });
+      return;
+    }
+
+    // If validation passes, show confirmation dialog
+    setConfirmOpen(true);
+  };
   const mockUpload = async (file: File): Promise<string> => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -154,42 +251,35 @@ const CreateEvent: React.FC = () => {
 
           <CardContent>
             <Tabs value={step} onValueChange={setStep}>
-              <TabsList className="grid grid-cols-3 w-full select-none pointer-events-none">
+              <TabsList className="grid grid-cols-3 w-full gap-1.5 select-none pointer-events-none">
               <TabsTrigger
                 value="details"
-                className={
-                  step === "details"
-                    ? "bg-indigo-600 text-white"
-                    : step === "documents" || step === "review"
-                    ? "bg-indigo-100 text-indigo-600"
-                    : ""
-                }
+                className={step === "details" ? "bg-indigo-600 text-white" : ""}
               >
-                Details
+                <div className="flex items-center gap-1">
+                  Details
+                  {sectionValidation.details === 'invalid' && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                </div>
               </TabsTrigger>
 
               <TabsTrigger
                 value="documents"
-                className={
-                  step === "documents"
-                    ? "bg-indigo-600 text-white"
-                    : step === "review"
-                    ? "bg-indigo-100 text-indigo-600"
-                    : ""
-                }
+                className={step === "documents" ? "bg-indigo-600 text-white" : ""}
               >
-                Documents
+                <div className="flex items-center gap-1">
+                  Documents
+                  {sectionValidation.documents === 'invalid' && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                </div>
               </TabsTrigger>
 
               <TabsTrigger
                 value="review"
-                className={
-                  step === "review"
-                    ? "bg-indigo-600 text-white"
-                    : ""
-                }
+                className={step === "review" ? "bg-indigo-600 text-white" : ""}
               >
-                Review
+                <div className="flex items-center gap-1">
+                  Review
+                  {sectionValidation.review === 'invalid' && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                </div>
               </TabsTrigger>
             </TabsList>
 
@@ -267,7 +357,7 @@ const CreateEvent: React.FC = () => {
 
                   <Button
                     className="mt-4 w-full"
-                    onClick={() => setStep("documents")}
+                    onClick={() => validateAndNavigate("details", "documents")}
                   >
                     Upload Documents
                   </Button>
@@ -323,13 +413,23 @@ const CreateEvent: React.FC = () => {
                     </div>
                   </div>
 
-                  <Button
-                    className="mt-4 w-full"
-                    variant="secondary"
-                    onClick={() => setStep("review")}
-                  >
-                    Next: Review
-                  </Button>
+                  <div className="flex gap-4 mt-4">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setStep("details")}
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back to Details
+                    </Button>
+
+                    <Button
+                      className="flex-1"
+                      onClick={() => validateAndNavigate("documents", "review")}
+                    >
+                      Review Details
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
 
@@ -427,13 +527,24 @@ const CreateEvent: React.FC = () => {
                     </table>
                   </div>
 
-                  <Button
-                    className="w-full"
-                    onClick={() => setConfirmOpen(true)}
-                    disabled={isSubmitting}
-                  >
-                    Submit for Approval
-                  </Button>
+                  <div className="flex gap-4">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setStep("documents")}
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back to Documents
+                    </Button>
+
+                    <Button
+                      className="flex-1"
+                      onClick={handlePreSubmitValidation}
+                      disabled={isSubmitting}
+                    >
+                      Submit for Approval
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>

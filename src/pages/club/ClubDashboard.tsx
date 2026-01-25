@@ -127,8 +127,9 @@ const ClubDashboard: React.FC = () => {
 
   return (
     <DashboardLayout>
-      {/* Soft Background */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,white,rgba(240,240,240,0.6))]" />
+      <div className="animate-fade-in">
+        {/* Soft Background */}
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,white,rgba(240,240,240,0.6))]" />
 
       {/* Header */}
       <div className="flex flex-col space-y-1 mb-6">
@@ -475,6 +476,7 @@ const ClubDashboard: React.FC = () => {
           </Card>
         </section>
 
+      </div>
       </div>
     </DashboardLayout>
   );
