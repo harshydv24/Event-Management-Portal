@@ -46,8 +46,8 @@ const roleConfig = {
     color: 'bg-club',
     navItems: [
       { path: '/department', label: 'Dashboard', icon: LayoutDashboard },
-      { path: '/department/pending', label: 'Pending Approval', icon: Calendar },
-      { path: '/department/approved', label: 'Approved Events', icon: Calendar },
+      // { path: '/department/pending', label: 'Pending Approval', icon: Calendar },
+      // { path: '/department/approved', label: 'Approved Events', icon: Calendar },
     ],
   },
 };
