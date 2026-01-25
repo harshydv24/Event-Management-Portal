@@ -9,14 +9,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Clock, Users, User, Ticket, Eye } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, User, Ticket, Eye, Plus, Minus } from 'lucide-react';
 import { format } from 'date-fns';
 import { Event, VENUES } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
 const StudentDashboard: React.FC = () => {
-  const { events = [], registerForEvent } = useEvents();
+  const { events = [], registerForEvent, registerTeamForEvent } = useEvents();
 
   const { user } = useAuth();
 
@@ -24,7 +26,14 @@ const StudentDashboard: React.FC = () => {
   
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showRegistration, setShowRegistration] = useState(false);
+  const [registrationType, setRegistrationType] = useState<'individual' | 'team'>('individual');
   const [registrationData, setRegistrationData] = useState({ uid: '', email: '', branch: '', sec: '' });
+  const [teamName, setTeamName] = useState('');
+  const [numMembers, setNumMembers] = useState(2);
+  const [teamMembers, setTeamMembers] = useState([
+    { name: '', uid: '', email: '', branch: '', sec: '', isLeader: true },
+    { name: '', uid: '', email: '', branch: '', sec: '', isLeader: false },
+  ]);
 
   // ESC key handler for accessibility
   useEffect(() => {
@@ -42,6 +51,56 @@ const StudentDashboard: React.FC = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [showRegistration, selectedEvent]);
 
+  // Pre-fill team leader with user data
+  useEffect(() => {
+    if (user && registrationType === 'team') {
+      setTeamMembers(prev => prev.map((member, index) =>
+        index === 0 ? {
+          ...member,
+          name: user.name,
+          uid: user.uid || '',
+          email: user.email,
+        } : member
+      ));
+    }
+  }, [user, registrationType]);
+
+  // Update team members when numMembers changes
+  useEffect(() => {
+    setTeamMembers(prev => {
+      const newMembers = [...prev];
+      if (numMembers > newMembers.length) {
+        // Add members
+        for (let i = newMembers.length; i < numMembers; i++) {
+          newMembers.push({ name: '', uid: '', email: '', branch: '', sec: '', isLeader: false });
+        }
+      } else if (numMembers < newMembers.length) {
+        // Remove members
+        newMembers.splice(numMembers);
+      }
+      return newMembers;
+    });
+  }, [numMembers]);
+
+  const addMember = () => {
+    if (numMembers < 5) {
+      setNumMembers(prev => prev + 1);
+    }
+  };
+
+  const removeMember = (index: number) => {
+    if (numMembers > 2 && index > 0) { // Don't remove the leader
+      setTeamMembers(prev => prev.filter((_, i) => i !== index));
+      setNumMembers(prev => prev - 1);
+    }
+  };
+
+  const updateMember = (index: number, field: string, value: string) => {
+    setTeamMembers(prev => prev.map((member, i) =>
+      i === index ? { ...member, [field]: value } : member
+    ));
+  };
+
   // Get registered and upcoming events
   const registeredEvents = events.filter(e =>
     e.participants.some(p => p.studentId === user?.id)
@@ -55,39 +114,86 @@ const StudentDashboard: React.FC = () => {
   const handleRegister = () => {
     if (!selectedEvent || !user) return;
 
-    // Validate all required fields
-    const uid = registrationData.uid || user.uid || '';
-    const email = registrationData.email || user.email || '';
-    const branch = registrationData.branch.trim();
-    const sec = registrationData.sec.trim();
+    if (registrationType === 'individual') {
+      // Validate all required fields
+      const uid = registrationData.uid || user.uid || '';
+      const email = registrationData.email || user.email || '';
+      const branch = registrationData.branch.trim();
+      const sec = registrationData.sec.trim();
 
-    if (!uid || !email || !branch || !sec) {
-      toast({
-        title: 'Registration Failed',
-        description: 'Please fill in all required fields (UID, Email, Branch, and Section)',
-        variant: 'destructive',
+      if (!uid || !email || !branch || !sec) {
+        toast({
+          title: 'Registration Failed',
+          description: 'Please fill in all required fields (UID, Email, Branch, and Section)',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      registerForEvent(selectedEvent.id, {
+        eventId: selectedEvent.id,
+        studentId: user.id,
+        studentName: user.name,
+        studentUid: uid,
+        studentEmail: email,
+        studentBranch: branch,
+        studentSec: sec,
       });
-      return;
+
+      toast({
+        title: 'Registration Successful!',
+        description: `You have registered for ${selectedEvent.name}`,
+      });
+    } else {
+      // Team registration
+      if (!teamName.trim()) {
+        toast({
+          title: 'Registration Failed',
+          description: 'Please enter a team name',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const participants: Omit<EventParticipant, 'id' | 'registeredAt'>[] = [];
+      for (const member of teamMembers) {
+        if (!member.name.trim() || !member.uid.trim() || !member.email.trim() || !member.branch.trim() || !member.sec.trim()) {
+          toast({
+            title: 'Registration Failed',
+            description: 'Please fill in all required fields for all team members',
+            variant: 'destructive',
+          });
+          return;
+        }
+        participants.push({
+          eventId: selectedEvent.id,
+          studentId: member.uid, // Use UID as studentId for team members
+          studentName: member.name,
+          studentUid: member.uid,
+          studentEmail: member.email,
+          studentBranch: member.branch,
+          studentSec: member.sec,
+        });
+      }
+
+      registerTeamForEvent(selectedEvent.id, participants);
+
+      toast({
+        title: 'Team Registration Successful!',
+        description: `Your team "${teamName}" has registered for ${selectedEvent.name}`,
+      });
     }
-
-    registerForEvent(selectedEvent.id, {
-      eventId: selectedEvent.id,
-      studentId: user.id,
-      studentName: user.name,
-      studentUid: uid,
-      studentEmail: email,
-      studentBranch: branch,
-      studentSec: sec,
-    });
-
-    toast({
-      title: 'Registration Successful!',
-      description: `You have registered for ${selectedEvent.name}`,
-    });
 
     setShowRegistration(false);
     setSelectedEvent(null);
     setRegistrationData({ uid: '', email: '', branch: '', sec: '' });
+    setRegistrationType('individual');
+    setTeamName('');
+    setNumMembers(2);
+    setTeamMembers([
+      { name: '', uid: '', email: '', branch: '', sec: '', isLeader: true },
+      { name: '', uid: '', email: '', branch: '', sec: '', isLeader: false },
+    ]);
   };
 
   return (
@@ -378,28 +484,6 @@ const StudentDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Registration Button */}
-                {selectedEvent.status === 'venue_selected' &&
-                 !selectedEvent.participants.some(p => p.studentId === user?.id) && (
-                  <div className="pt-6 border-t border-border/50">
-                    <div className="flex gap-3">
-                      <Button
-                        className="flex-1 bg-gradient-to-r indigo-600 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-                        onClick={() => setShowRegistration(true)}
-                      >
-                        Register Now
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="px-3 py-3 rounded-xl"
-                        onClick={() => {/* Add to calendar functionality */}}
-                        title="Add to Calendar"
-                      >
-                        <Calendar className="w-5 h-5 text-black-600" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
               </div>
             </>
           )}
@@ -408,57 +492,201 @@ const StudentDashboard: React.FC = () => {
 
       {/* Registration Dialog */}
       <Dialog open={showRegistration} onOpenChange={setShowRegistration}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Event Registration</DialogTitle>
             <DialogDescription>
               Register for {selectedEvent?.name}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="reg-uid">University ID (UID) <span className="text-red-500">*</span></Label>
-              <Input
-                id="reg-uid"
-                placeholder="Enter your UID"
-                value={registrationData.uid}
-                onChange={(e) => setRegistrationData(prev => ({ ...prev, uid: e.target.value }))}
-                required
-              />
+          <div className="space-y-6">
+            {/* Registration Type Selection */}
+            <div className="space-y-3">
+              <Label className="text-base font-medium">Registration Type</Label>
+              <RadioGroup
+                value={registrationType}
+                onValueChange={(value: 'individual' | 'team') => setRegistrationType(value)}
+                className="flex gap-6"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="individual" id="individual" />
+                  <Label htmlFor="individual" className="cursor-pointer">Register as Individual</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="team" id="team" />
+                  <Label htmlFor="team" className="cursor-pointer">Register as Team</Label>
+                </div>
+              </RadioGroup>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="reg-email">Email <span className="text-red-500">*</span></Label>
-              <Input
-                id="reg-email"
-                type="email"
-                placeholder="Enter your email"
-                value={registrationData.email}
-                onChange={(e) => setRegistrationData(prev => ({ ...prev, email: e.target.value }))}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reg-branch">Branch <span className="text-red-500">*</span></Label>
-              <Input
-                id="reg-branch"
-                placeholder="Enter your branch"
-                value={registrationData.branch}
-                onChange={(e) => setRegistrationData(prev => ({ ...prev, branch: e.target.value }))}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reg-sec">Section <span className="text-red-500">*</span></Label>
-              <Input
-                id="reg-sec"
-                placeholder="Enter your section"
-                value={registrationData.sec}
-                onChange={(e) => setRegistrationData(prev => ({ ...prev, sec: e.target.value }))}
-                required
-              />
-            </div>
+            {registrationType === 'individual' ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="reg-uid">University ID (UID) <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="reg-uid"
+                    placeholder="Enter your UID"
+                    value={registrationData.uid}
+                    onChange={(e) => setRegistrationData(prev => ({ ...prev, uid: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="reg-email">Email <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="reg-email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={registrationData.email}
+                    onChange={(e) => setRegistrationData(prev => ({ ...prev, email: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="reg-branch">Branch <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="reg-branch"
+                    placeholder="Enter your branch"
+                    value={registrationData.branch}
+                    onChange={(e) => setRegistrationData(prev => ({ ...prev, branch: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="reg-sec">Section <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="reg-sec"
+                    placeholder="Enter your section"
+                    value={registrationData.sec}
+                    onChange={(e) => setRegistrationData(prev => ({ ...prev, sec: e.target.value }))}
+                    required
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="team-name">Team Name <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="team-name"
+                    placeholder="Enter team name"
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="num-members">Number of Members <span className="text-red-500">*</span></Label>
+                  <Select value={numMembers.toString()} onValueChange={(value) => setNumMembers(parseInt(value))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="4">4</SelectItem>
+                      <SelectItem value="5">5</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-medium">Team Members</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={addMember}
+                        disabled={numMembers >= 5}
+                        className="flex items-center gap-1"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Member
+                      </Button>
+                    </div>
+                  </div>
+
+                  {teamMembers.map((member, index) => (
+                    <div key={index} className="border rounded-lg p-4 space-y-3 bg-muted/30">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">
+                          {member.isLeader ? 'Team Leader' : `Member ${index + 1}`}
+                        </h4>
+                        {index > 0 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeMember(index)}
+                            className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                          >
+                            <Minus className="w-4 h-4" />
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label htmlFor={`member-${index}-name`}>Name <span className="text-red-500">*</span></Label>
+                          <Input
+                            id={`member-${index}-name`}
+                            placeholder="Enter name"
+                            value={member.name}
+                            onChange={(e) => updateMember(index, 'name', e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`member-${index}-uid`}>University ID <span className="text-red-500">*</span></Label>
+                          <Input
+                            id={`member-${index}-uid`}
+                            placeholder="Enter UID"
+                            value={member.uid}
+                            onChange={(e) => updateMember(index, 'uid', e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`member-${index}-email`}>Email <span className="text-red-500">*</span></Label>
+                          <Input
+                            id={`member-${index}-email`}
+                            type="email"
+                            placeholder="Enter email"
+                            value={member.email}
+                            onChange={(e) => updateMember(index, 'email', e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`member-${index}-branch`}>Branch <span className="text-red-500">*</span></Label>
+                          <Input
+                            id={`member-${index}-branch`}
+                            placeholder="Enter branch"
+                            value={member.branch}
+                            onChange={(e) => updateMember(index, 'branch', e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor={`member-${index}-sec`}>Section <span className="text-red-500">*</span></Label>
+                          <Input
+                            id={`member-${index}-sec`}
+                            placeholder="Enter section"
+                            value={member.sec}
+                            onChange={(e) => updateMember(index, 'sec', e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
             <Button className="w-full" onClick={handleRegister}>
-              Confirm Registration
+              {registrationType === 'individual' ? 'Confirm Registration' : 'Confirm Team Registration'}
             </Button>
           </div>
         </DialogContent>

@@ -10,6 +10,7 @@ interface EventContextType {
   rejectEvent: (id: string, feedback: string) => void;
   selectVenue: (eventId: string, venue: string, time: string) => void;
   registerForEvent: (eventId: string, participant: Omit<EventParticipant, 'id' | 'registeredAt'>) => void;
+  registerTeamForEvent: (eventId: string, participants: Omit<EventParticipant, 'id' | 'registeredAt'>[]) => void;
   getClub: (clubId: string) => Club | undefined;
   updateClub: (clubId: string, updates: Partial<Club>) => void;
   createClub: (club: Omit<Club, 'id' | 'createdAt' | 'eventsCount'>) => Club;
@@ -140,7 +141,7 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const registerForEvent = (
-    eventId: string, 
+    eventId: string,
     participant: Omit<EventParticipant, 'id' | 'registeredAt'>
   ) => {
     const event = events.find(e => e.id === eventId);
@@ -154,6 +155,24 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     updateEvent(eventId, {
       participants: [...event.participants, newParticipant],
+    });
+  };
+
+  const registerTeamForEvent = (
+    eventId: string,
+    participants: Omit<EventParticipant, 'id' | 'registeredAt'>[]
+  ) => {
+    const event = events.find(e => e.id === eventId);
+    if (!event) return;
+
+    const newParticipants: EventParticipant[] = participants.map(participant => ({
+      ...participant,
+      id: crypto.randomUUID(),
+      registeredAt: new Date().toISOString(),
+    }));
+
+    updateEvent(eventId, {
+      participants: [...event.participants, ...newParticipants],
     });
   };
 
@@ -185,6 +204,7 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       rejectEvent,
       selectVenue,
       registerForEvent,
+      registerTeamForEvent,
       getClub,
       updateClub,
       createClub,
