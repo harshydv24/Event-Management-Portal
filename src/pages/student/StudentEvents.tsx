@@ -58,13 +58,13 @@ const StudentEvents: React.FC = () => {
   const filteredEvents = useMemo(() => {
     return allEvents.filter(event => {
       const matchesSearch = event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           event.clubName.toLowerCase().includes(searchQuery.toLowerCase());
+        event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.clubName.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesClub = clubFilter === 'all' || event.clubName === clubFilter;
       const matchesStatus = statusFilter === 'all' ||
-                           (statusFilter === 'registered' && event.participants.some(p => p.studentId === user?.id)) ||
-                           (statusFilter === 'available' && !event.participants.some(p => p.studentId === user?.id));
+        (statusFilter === 'registered' && event.participants.some(p => p.studentId === user?.id)) ||
+        (statusFilter === 'available' && !event.participants.some(p => p.studentId === user?.id));
 
       return matchesSearch && matchesClub && matchesStatus;
     });
@@ -332,17 +332,17 @@ const StudentEvents: React.FC = () => {
                       View Details
                     </Button>
                     {event.status === 'venue_selected' &&
-                     !event.participants.some(p => p.studentId === user?.id) && (
-                      <Button
-                        onClick={() => {
-                          setSelectedEvent(event);
-                          setShowRegistration(true);
-                        }}
-                        className="shadow-sm"
-                      >
-                        Register
-                      </Button>
-                    )}
+                      !event.participants.some(p => p.studentId === user?.id) && (
+                        <Button
+                          onClick={() => {
+                            setSelectedEvent(event);
+                            setShowRegistration(true);
+                          }}
+                          className="shadow-sm"
+                        >
+                          Register
+                        </Button>
+                      )}
                   </div>
                 </div>
               </Card>

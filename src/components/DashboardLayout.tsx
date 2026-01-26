@@ -46,8 +46,7 @@ const roleConfig = {
     color: 'bg-club',
     navItems: [
       { path: '/department', label: 'Dashboard', icon: LayoutDashboard },
-      // { path: '/department/pending', label: 'Pending Approval', icon: Calendar },
-      // { path: '/department/approved', label: 'Approved Events', icon: Calendar },
+      { path: '/department/clubs', label: 'Registered Clubs', icon: Users },
     ],
   },
 };
@@ -64,98 +63,98 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-<header className="bg-primary/90 text-primary-foreground shadow-sm sticky top-0 z-50 backdrop-blur-md">
-  <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-    <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-        <Icon className="w-5 h-5" />
+      <header className="bg-primary/90 text-primary-foreground shadow-sm sticky top-0 z-50 backdrop-blur-md">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+              <Icon className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-lg font-semibold tracking-tight">
+                {config.title}
+              </h1>
+              <p className="text-xs opacity-90 tracking-wide">
+                Welcome, {user.name} 👋
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Notification Bell */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white bg-white/10 hover:bg-white/30 relative rounded-full w-9 h-9 p-0 flex items-center justify-center border border-white/30"
+              title="Notifications"
+            >
+              <Bell className="w-4 h-4" />
+              {/* Notification dot - can be made dynamic */}
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </Button>
+
+            <ThemeToggle />
+
+            <Button
+              variant="ghost"
+              className="text-white bg-white/10 hover:bg-white/30 w-24 h-9 p-0 border border-white/30"
+              onClick={logout}
+            >
+              <LogOut className="w-0 h-0 mr-0" />
+              Logout
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Breadcrumb Layer */}
+      <div className="border-b bg-muted/30 backdrop-blur">
+        <div className="container mx-auto px-4 py-2">
+          <div className="text-xs text-muted-foreground tracking-wide">
+            {config.title} › {location.pathname.split('/')[1] || 'Dashboard'}
+          </div>
+        </div>
       </div>
-      <div>
-        <h1 className="text-lg font-semibold tracking-tight">
-          {config.title}
-        </h1>
-        <p className="text-xs opacity-90 tracking-wide">
-          Welcome, {user.name} 👋
-        </p>
-      </div>
-    </div>
 
-    <div className="flex items-center gap-2">
-      {/* Notification Bell */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="text-white bg-white/10 hover:bg-white/30 relative rounded-full w-9 h-9 p-0 flex items-center justify-center border border-white/30"
-        title="Notifications"
-      >
-        <Bell className="w-4 h-4" />
-        {/* Notification dot - can be made dynamic */}
-        <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-      </Button>
+      {/* Navigation Tabs */}
+      <nav className="border-b bg-background">
+        <div className="container mx-auto px-4 flex items-center justify-between gap-3 py-2">
 
-      <ThemeToggle />
-
-      <Button
-        variant="ghost"
-        className="text-white bg-white/10 hover:bg-white/30 w-24 h-9 p-0 border border-white/30"
-        onClick={logout}
-      >
-        <LogOut className="w-0 h-0 mr-0" />
-        Logout
-      </Button>
-    </div>
-  </div>
-</header>
-
-{/* Breadcrumb Layer */}
-<div className="border-b bg-muted/30 backdrop-blur">
-  <div className="container mx-auto px-4 py-2">
-    <div className="text-xs text-muted-foreground tracking-wide">
-      {config.title} › {location.pathname.split('/')[1] || 'Dashboard'}
-    </div>
-  </div>
-</div>
-
-{/* Navigation Tabs */}
-<nav className="border-b bg-background">
-  <div className="container mx-auto px-4 flex items-center justify-between gap-3 py-2">
-
-    {/* Tabs */}
-    <div className="flex gap-4 overflow-x-auto scrollbar-none relative">
-      {config.navItems.filter(item => item.label !== 'Create Event').map(item => {
-        const isActive = location.pathname === item.path;
-        return (
-          <Link key={item.path} to={item.path}>
-            <span
-              className={`
+          {/* Tabs */}
+          <div className="flex gap-4 overflow-x-auto scrollbar-none relative">
+            {config.navItems.filter(item => item.label !== 'Create Event').map(item => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link key={item.path} to={item.path}>
+                  <span
+                    className={`
                 text-sm cursor-pointer pb-2 transition tracking-wide whitespace-nowrap
                 ${isActive ? 'text-primary font-bold' : 'text-muted-foreground hover:text-foreground'}
               `}
-            >
-              {item.label}
-            </span>
-            {isActive && (
-              <div className="h-[2px] rounded-full bg-primary mt-1"></div>
-            )}
-          </Link>
-        );
-      })}
-    </div>
+                  >
+                    {item.label}
+                  </span>
+                  {isActive && (
+                    <div className="h-[2px] rounded-full bg-primary mt-1"></div>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
 
-    {/* Actions */}
-    {user.role === 'club' && (
-      <Button size="sm" className="font-medium tracking-wide" asChild>
-        <Link to="/club/create-event">
-        <Plus className="w-3 h-3 mr-0" />
-        Create Event
-        </Link>
-      </Button>
-    )}
-  </div>
-</nav>
+          {/* Actions */}
+          {user.role === 'club' && (
+            <Button size="sm" className="font-medium tracking-wide" asChild>
+              <Link to="/club/create-event">
+                <Plus className="w-3 h-3 mr-0" />
+                Create Event
+              </Link>
+            </Button>
+          )}
+        </div>
+      </nav>
 
 
-      
+
 
       {/* old */}
       {/* Navigation
@@ -191,10 +190,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       </main>
 
       <footer className="border-t bg-muted/30">
-  <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
-    © {new Date().getFullYear()} University Event Management System. All rights reserved.
-  </div>
-</footer>
+        <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
+          © {new Date().getFullYear()} University Event Management System. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 };

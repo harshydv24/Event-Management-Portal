@@ -1,4 +1,4 @@
-import { CalendarCheck, Hourglass, CheckCircle2, XCircle } from "lucide-react";
+import { CalendarCheck, Hourglass, CheckCircle2, XCircle, Search } from "lucide-react";
 import { type LucideIcon } from "lucide-react";
 
 
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Calendar, Clock, Users, MapPin, Check, X, Eye } from "lucide-react";
 import { format } from "date-fns";
@@ -27,6 +28,7 @@ const DepartmentDashboard: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const stats = useMemo(() => {
     const pending = events.filter(e => e.status === "pending_approval");
@@ -42,7 +44,7 @@ const DepartmentDashboard: React.FC = () => {
 
   const clubStats = useMemo(() => {
     const clubMap = new Map<string, { name: string; totalEvents: number; pendingEvents: number; approvedEvents: number; rejectedEvents: number; }>();
-    
+
     events.forEach(event => {
       const clubName = event.clubName || event.departmentName || 'Unknown Club';
       if (!clubMap.has(clubName)) {
@@ -54,17 +56,24 @@ const DepartmentDashboard: React.FC = () => {
           rejectedEvents: 0,
         });
       }
-      
+
       const club = clubMap.get(clubName)!;
       club.totalEvents++;
-      
+
       if (event.status === "pending_approval") club.pendingEvents++;
       else if (event.status === "approved" || event.status === "venue_selected") club.approvedEvents++;
       else if (event.status === "rejected") club.rejectedEvents++;
     });
-    
+
     return Array.from(clubMap.values()).sort((a, b) => b.totalEvents - a.totalEvents);
   }, [events]);
+
+  const filteredClubs = useMemo(() => {
+    if (!searchQuery) return clubStats;
+    return clubStats.filter(club =>
+      club.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [clubStats, searchQuery]);
 
   const filteredEvents = useMemo(() => {
     if (activeTab === "pending") return events.filter(e => e.status === "pending_approval");
@@ -347,9 +356,20 @@ const DepartmentDashboard: React.FC = () => {
                 </div>
               </Card>
 
+              {/* Search Box */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Search clubs..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
               {/* Clubs Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {clubStats.map((club, index) => (
+                {filteredClubs.map((club, index) => (
                   <Card key={club.name} className="p-6 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
                     <div className="space-y-4">
                       {/* Club Header */}
@@ -402,7 +422,7 @@ const DepartmentDashboard: React.FC = () => {
                 ))}
               </div>
 
-              {clubStats.length === 0 && (
+              {filteredClubs.length === 0 && (
                 <Card className="col-span-full p-8 text-center">
                   <p className="text-muted-foreground">No clubs found.</p>
                 </Card>
