@@ -52,29 +52,63 @@ const ClubDashboard: React.FC = () => {
   const [club, setClub] = useState<Club | null>(null);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [newMember, setNewMember] = useState({ name: '', uid: '', branch: '', year: '', designation: '' });
+  const [isCarouselHovered, setIsCarouselHovered] = useState(false);
+  const [isScrollPaused, setIsScrollPaused] = useState(false);
 
   const marqueeRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollLeft = () => {
-    const el = marqueeRef.current;
-    if (!el) return;
-    el.style.animationPlayState = "paused";
-    el.style.transform = "translateX(80px)";
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    // Pause auto-scroll temporarily
+    setIsScrollPaused(true);
+
+    // Check if we're near the start - if so, teleport to middle first
+    if (container.scrollLeft < 300) {
+      // Teleport to the middle section (instant jump)
+      const middlePosition = container.scrollWidth / 3;
+      container.scrollLeft = middlePosition;
+    }
+
+    // Smooth scroll left
+    container.scrollBy({
+      left: -280,
+      behavior: 'smooth'
+    });
+
+    // Resume auto-scroll after a delay
     setTimeout(() => {
-      el.style.transform = "translateX(0px)";
-      el.style.animationPlayState = "running";
-    }, 200);
+      setIsScrollPaused(false);
+    }, 2000);
   };
 
   const scrollRight = () => {
-    const el = marqueeRef.current;
-    if (!el) return;
-    el.style.animationPlayState = "paused";
-    el.style.transform = "translateX(-80px)";
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    // Pause auto-scroll temporarily
+    setIsScrollPaused(true);
+
+    // Check if we're near the end - if so, teleport to middle first
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    if (container.scrollLeft > maxScroll - 300) {
+      // Teleport to the middle section (instant jump)
+      const middlePosition = container.scrollWidth / 3;
+      container.scrollLeft = middlePosition;
+    }
+
+    // Smooth scroll right
+    container.scrollBy({
+      left: 280,
+      behavior: 'smooth'
+    });
+
+    // Resume auto-scroll after a delay
     setTimeout(() => {
-      el.style.transform = "translateX(0px)";
-      el.style.animationPlayState = "running";
-    }, 200);
+      setIsScrollPaused(false);
+    }, 2000);
   };
 
   useEffect(() => {
@@ -113,7 +147,8 @@ const ClubDashboard: React.FC = () => {
     </DashboardLayout>
   );
 
-  const clubEvents = events.filter(e => e.clubId === club?.id);
+  const currentClubId = user?.clubId;
+  const clubEvents = events.filter(e => e.clubId === currentClubId);
   const pendingEvents = clubEvents.filter(e => e.status === 'pending_approval');
   const completedEvents = clubEvents.filter(e => e.status === 'completed');
   const totalParticipants = clubEvents.reduce((sum, e) => sum + e.participants.length, 0);
@@ -355,29 +390,42 @@ const ClubDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
               </div>
 
-              <div className="relative py-2">
-                {/* Left Button */}
+              <div
+                className="relative py-2"
+                onMouseEnter={() => setIsCarouselHovered(true)}
+                onMouseLeave={() => setIsCarouselHovered(false)}
+              >
+                {/* Left Button - Fade in/out on hover */}
                 <button
                   onClick={scrollLeft}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 backdrop-blur-md shadow rounded-full p-2 hover:bg-white transition"
+                  className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-md shadow-lg rounded-full p-2.5 hover:bg-white hover:scale-110 transition-all duration-300 ${isCarouselHovered
+                    ? 'opacity-100 translate-x-0'
+                    : 'opacity-0 -translate-x-2 pointer-events-none'
+                    }`}
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-5 h-5 text-slate-700" />
                 </button>
 
                 <div
-                  className="overflow-hidden group"
+                  ref={scrollContainerRef}
+                  className="overflow-x-auto scrollbar-hide"
                   style={{
-                    maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)"
+                    maskImage: "linear-gradient(to right, transparent, black 5%, black 95%, transparent)",
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
                   }}
                 >
                   <div
                     ref={marqueeRef}
-                    className="flex gap-6 whitespace-nowrap animate-scroll group-hover:[animation-play-state:paused]"
+                    className="flex gap-6 whitespace-nowrap py-2 animate-scroll"
+                    style={{
+                      animationPlayState: (isCarouselHovered || isScrollPaused) ? 'paused' : 'running'
+                    }}
                     key={club.coreTeam.length}
                   >
                     {(club.coreTeam && club.coreTeam.length > 0
-                      ? [...club.coreTeam, ...club.coreTeam]
-                      : fallbackMembers
+                      ? [...club.coreTeam, ...club.coreTeam, ...club.coreTeam]
+                      : [...fallbackMembers, ...fallbackMembers]
                     ).map((m, i) => {
                       const initials = m.name.split(" ").map(s => s[0]).join("").toUpperCase().slice(0, 2);
 
@@ -385,9 +433,9 @@ const ClubDashboard: React.FC = () => {
                         <Card
                           key={i}
                           className="inline-flex flex-col justify-between min-w-[220px] max-w-[220px]
-                      backdrop-blur-sm bg-white/70 border rounded-xl px-4 py-5 shadow
-                      hover:shadow-xl hover:-translate-y-[2px] hover:scale-[1.03]
-                      transition duration-200 cursor-pointer"
+                            backdrop-blur-sm bg-white/70 border rounded-xl px-4 py-5 shadow
+                            hover:shadow-xl hover:-translate-y-[2px] hover:scale-[1.03]
+                            transition duration-200 cursor-pointer flex-shrink-0"
                         >
                           <div className="flex items-center justify-center mb-2">
                             <div className="w-12 h-12 bg-indigo-600 text-white flex items-center justify-center rounded-full text-sm font-medium shadow">
@@ -412,66 +460,133 @@ const ClubDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Right Button */}
+                {/* Right Button - Fade in/out on hover */}
                 <button
                   onClick={scrollRight}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 backdrop-blur-md shadow rounded-full p-2 hover:bg-white transition"
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-md shadow-lg rounded-full p-2.5 hover:bg-white hover:scale-110 transition-all duration-300 ${isCarouselHovered
+                    ? 'opacity-100 translate-x-0'
+                    : 'opacity-0 translate-x-2 pointer-events-none'
+                    }`}
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-5 h-5 text-slate-700" />
                 </button>
               </div>
             </section>
           </section>
 
           {/* Timeline Events */}
-          <section className="space-y-4">
+          <section className="space-y-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold tracking-tight text-slate-800">Event Timeline</h2>
+              <div>
+                <h2 className="text-2xl font-semibold tracking-tight text-slate-800">Event Timeline</h2>
+              </div>
               <Link to="/club/events">
                 <Button variant="outline" size="sm">
-                  View All <ChevronRight className="w-4 h-4 ml-1" />
+                  View All <ChevronRight className="w-4 h-4" />
                 </Button>
               </Link>
             </div>
 
-            <Card className="p-6 shadow-sm rounded-xl border bg-white">
+            <Card className="p-0 shadow-sm rounded-xl border bg-white overflow-hidden">
               {Object.keys(groupedEvents).length > 0 ? (
-                <div className="space-y-8">
-                  {Object.entries(groupedEvents).map(([month, events]) => (
-                    <div key={month}>
-                      <h3 className="font-medium text-indigo-600 mb-2 tracking-wide">{month}</h3>
-                      <div className="border-l pl-4 space-y-4 border-indigo-200">
-                        {events.map(event => (
-                          <div key={event.id} className="relative flex flex-col gap-1">
-                            <span className="absolute -left-[9px] top-1 w-3 h-3 bg-indigo-600 rounded-full shadow"></span>
-                            <span className="font-medium tracking-tight">{event.name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {format(new Date(event.date), 'MMM d, yyyy')}
-                              {event.venue && ` • ${event.venue}`}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <Badge variant={
-                                event.status === 'pending_approval' ? 'secondary' :
-                                  event.status === 'approved' ? 'default' :
-                                    event.status === 'venue_selected' ? 'default' :
-                                      event.status === 'rejected' ? 'destructive' : 'outline'
-                              } className="text-[10px] tracking-wide px-2 py-[1px]">
-                                {event.status.replace('_', ' ')}
-                              </Badge>
-                              <span className="text-xs text-muted-foreground">
-                                {event.participants.length} participants
-                              </span>
+                <div className="divide-y divide-slate-100">
+                  {Object.entries(groupedEvents).map(([month, events], groupIndex) => (
+                    <div key={month} className="p-6">
+                      {/* Month Header */}
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className="p-2 bg-indigo-50 rounded-lg">
+                          <Calendar className="w-4 h-4 text-indigo-600" />
+                        </div>
+                        <h3 className="font-semibold text-indigo-600 text-sm uppercase tracking-wider">
+                          {month}
+                        </h3>
+                        <div className="flex-1 h-px bg-gradient-to-r from-indigo-100 to-transparent" />
+                      </div>
+
+                      {/* Events List */}
+                      <div className="relative ml-4">
+                        {/* Timeline Line */}
+                        <div className="absolute left-0 top-2 bottom-2 w-0.5 bg-gradient-to-b from-indigo-200 via-indigo-100 to-transparent" />
+
+                        <div className="space-y-4">
+                          {events.map((event, eventIndex) => (
+                            <div
+                              key={event.id}
+                              className="relative pl-6 group"
+                            >
+                              {/* Timeline Dot */}
+                              <div className="absolute left-[-5px] top-2 w-3 h-3 rounded-full border-2 border-white shadow-sm bg-indigo-500" />
+
+                              {/* Event Card */}
+                              <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100">
+                                <div className="flex items-start justify-between gap-4">
+                                  <div className="flex-1 min-w-0">
+                                    {/* Event Name */}
+                                    <h4 className="font-medium text-slate-800">
+                                      {event.name}
+                                    </h4>
+
+                                    {/* Event Meta */}
+                                    <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-500">
+                                      <span className="inline-flex items-center gap-1">
+                                        <Clock className="w-3.5 h-3.5" />
+                                        {format(new Date(event.date), 'MMM d, yyyy')}
+                                      </span>
+                                      {event.venue && (
+                                        <>
+                                          <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                                          <span className="inline-flex items-center gap-1">
+                                            <span className="text-slate-400">📍</span>
+                                            {event.venue}
+                                          </span>
+                                        </>
+                                      )}
+                                      <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                                      <span className="inline-flex items-center gap-1">
+                                        <Users className="w-3.5 h-3.5" />
+                                        {event.participants.length} registered
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Status Badge */}
+                                  <Badge
+                                    className={`shrink-0 text-[10px] font-medium tracking-wide px-2.5 py-1 rounded-full ${event.status === 'pending_approval'
+                                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                      : event.status === 'approved'
+                                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                        : event.status === 'venue_selected'
+                                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                          : event.status === 'rejected'
+                                            ? 'bg-red-50 text-red-700 border border-red-200'
+                                            : 'bg-slate-50 text-slate-600 border border-slate-200'
+                                      }`}
+                                  >
+                                    {event.status === 'pending_approval'
+                                      ? 'Pending'
+                                      : event.status === 'venue_selected'
+                                        ? 'Upcoming'
+                                        : event.status.charAt(0).toUpperCase() + event.status.slice(1).replace('_', ' ')}
+                                  </Badge>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center py-6 text-sm">
-                  No events yet. Create your first event!
-                </p>
+                <div className="p-12 text-center">
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Calendar className="w-8 h-8 text-slate-400" />
+                  </div>
+                  <h3 className="font-medium text-slate-700 mb-1">No events yet</h3>
+                  <p className="text-sm text-slate-500">
+                    Create your first event to get started!
+                  </p>
+                </div>
               )}
             </Card>
           </section>

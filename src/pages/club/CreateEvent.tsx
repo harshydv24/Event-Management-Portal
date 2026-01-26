@@ -72,17 +72,17 @@ const CreateEvent: React.FC = () => {
     m2mUrl: ""
   });
 
-  const club = clubs.find((c) => c.id === user?.clubId) || clubs[0];
+  const club = clubs.find((c) => c.id === user?.clubId);
 
   // Validation functions
   const validateDetails = () => {
     const { name, description, date, expectedParticipants } = formData;
-    return name.trim() !== '' && 
-           description.trim() !== '' && 
-           date !== '' && 
-           expectedParticipants !== '' && 
-           !isNaN(Number(expectedParticipants)) && 
-           Number(expectedParticipants) > 0;
+    return name.trim() !== '' &&
+      description.trim() !== '' &&
+      date !== '' &&
+      expectedParticipants !== '' &&
+      !isNaN(Number(expectedParticipants)) &&
+      Number(expectedParticipants) > 0;
   };
 
   const validateDocuments = () => {
@@ -220,7 +220,7 @@ const CreateEvent: React.FC = () => {
       guestName: formData.guestName,
       proposalPdf: formData.proposalUrl,
       m2mPdf: formData.m2mUrl,
-      clubId: club?.id || "",
+      clubId: user?.clubId || "",
       clubName: club?.name || "Unknown Club",
       status: "pending_approval"
     });
@@ -252,36 +252,36 @@ const CreateEvent: React.FC = () => {
           <CardContent>
             <Tabs value={step} onValueChange={setStep}>
               <TabsList className="grid grid-cols-3 w-full gap-1.5 select-none pointer-events-none">
-              <TabsTrigger
-                value="details"
-                className={step === "details" ? "bg-indigo-600 text-white" : ""}
-              >
-                <div className="flex items-center gap-1">
-                  Details
-                  {sectionValidation.details === 'invalid' && <AlertTriangle className="w-4 h-4 text-red-500" />}
-                </div>
-              </TabsTrigger>
+                <TabsTrigger
+                  value="details"
+                  className={step === "details" ? "bg-indigo-600 text-white" : ""}
+                >
+                  <div className="flex items-center gap-1">
+                    Details
+                    {sectionValidation.details === 'invalid' && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                  </div>
+                </TabsTrigger>
 
-              <TabsTrigger
-                value="documents"
-                className={step === "documents" ? "bg-indigo-600 text-white" : ""}
-              >
-                <div className="flex items-center gap-1">
-                  Documents
-                  {sectionValidation.documents === 'invalid' && <AlertTriangle className="w-4 h-4 text-red-500" />}
-                </div>
-              </TabsTrigger>
+                <TabsTrigger
+                  value="documents"
+                  className={step === "documents" ? "bg-indigo-600 text-white" : ""}
+                >
+                  <div className="flex items-center gap-1">
+                    Documents
+                    {sectionValidation.documents === 'invalid' && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                  </div>
+                </TabsTrigger>
 
-              <TabsTrigger
-                value="review"
-                className={step === "review" ? "bg-indigo-600 text-white" : ""}
-              >
-                <div className="flex items-center gap-1">
-                  Review
-                  {sectionValidation.review === 'invalid' && <AlertTriangle className="w-4 h-4 text-red-500" />}
-                </div>
-              </TabsTrigger>
-            </TabsList>
+                <TabsTrigger
+                  value="review"
+                  className={step === "review" ? "bg-indigo-600 text-white" : ""}
+                >
+                  <div className="flex items-center gap-1">
+                    Review
+                    {sectionValidation.review === 'invalid' && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                  </div>
+                </TabsTrigger>
+              </TabsList>
 
 
               {/* STEP 1: EVENT DETAILS */}

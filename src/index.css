@@ -2,10 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide number input spinners for all browsers */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Hide scrollbars completely */
+.scrollbar-none,
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 .errorImageClass {
   max-height: 25rem;
   max-width: 25rem;
-  opacity: 1; 
+  opacity: 1;
 }
 
 .themeButton {
@@ -15,8 +41,9 @@
   background: hsl(231 40% 90%);
   color: hsl(231 48% 30%);
   transition: background 0.2s ease, box-shadow 0.2s ease;
- 
+
 }
+
 .themeButton:hover {
   background: hsl(220 10% 80%);
   box-shadow: 0 2px 6px hsl(220 10% 60% / 0.15);
@@ -122,78 +149,81 @@
     --club-foreground: 0 0% 100%;
     --department: 142 70% 45%;
     --department-foreground: 0 0% 100%;
-    
+
   }
 
 
   /* ye .dark dark mode ke liea hai na? */
   .dark {
- --background: 220 20% 92%;
-  --foreground: 224 50% 18%;
+    --background: 220 20% 92%;
+    --foreground: 224 50% 18%;
 
-  --card: 220 15% 94%;
-  --card-foreground: 224 50% 18%;
+    --card: 220 15% 94%;
+    --card-foreground: 224 50% 18%;
 
-  --popover: 220 15% 94%;
-  --popover-foreground: 224 50% 18%;
+    --popover: 220 15% 94%;
+    --popover-foreground: 224 50% 18%;
 
-  --primary: 231 48% 28%;
-  --primary-foreground: 0 0% 100%;
+    --primary: 231 48% 28%;
+    --primary-foreground: 0 0% 100%;
 
-  --secondary: 220 20% 90%;
-  --secondary-foreground: 224 50% 18%;
+    --secondary: 220 20% 90%;
+    --secondary-foreground: 224 50% 18%;
 
-  --muted: 220 15% 88%;
-  --muted-foreground: 220 10% 42%;
+    --muted: 220 15% 88%;
+    --muted-foreground: 220 10% 42%;
 
-  --accent: 15 80% 58%;
-  --accent-foreground: 0 0% 100%;
+    --accent: 15 80% 58%;
+    --accent-foreground: 0 0% 100%;
 
-  --destructive: 0 72% 49%;
-  --destructive-foreground: 0 0% 100%;
+    --destructive: 0 72% 49%;
+    --destructive-foreground: 0 0% 100%;
 
-  --success: 142 70% 42%;
-  --success-foreground: 0 0% 100%;
+    --success: 142 70% 42%;
+    --success-foreground: 0 0% 100%;
 
-  --warning: 38 92% 48%;
-  --warning-foreground: 0 0% 100%;
+    --warning: 38 92% 48%;
+    --warning-foreground: 0 0% 100%;
 
-  --border: 220 20% 84%;
-  --input: 220 20% 84%;
-  --ring: 231 48% 28%;
+    --border: 220 20% 84%;
+    --input: 220 20% 84%;
+    --ring: 231 48% 28%;
 
-  --radius: 0.75rem;
+    --radius: 0.75rem;
 
-  /* Sidebar */
-  --sidebar-background: 231 48% 22%;
-  --sidebar-foreground: 220 20% 92%;
-  --sidebar-primary: 15 80% 58%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 231 40% 32%;
-  --sidebar-accent-foreground: 220 20% 92%;
-  --sidebar-border: 231 40% 32%;
-  --sidebar-ring: 15 80% 58%;
+    /* Sidebar */
+    --sidebar-background: 231 48% 22%;
+    --sidebar-foreground: 220 20% 92%;
+    --sidebar-primary: 15 80% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 231 40% 32%;
+    --sidebar-accent-foreground: 220 20% 92%;
+    --sidebar-border: 231 40% 32%;
+    --sidebar-ring: 15 80% 58%;
 
-  /* Portal colors */
-  --student: 199 89% 46%;
-  --student-foreground: 0 0% 100%;
+    /* Portal colors */
+    --student: 199 89% 46%;
+    --student-foreground: 0 0% 100%;
 
-  --club: 262 83% 56%;
-  --club-foreground: 0 0% 100%;
+    --club: 262 83% 56%;
+    --club-foreground: 0 0% 100%;
 
-  --department: 142 70% 42%;
-  --department-foreground: 0 0% 100%;
+    --department: 142 70% 42%;
+    --department-foreground: 0 0% 100%;
   }
 }
 
 
 @keyframes scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 .animate-scroll {
   animation: scroll 22s linear infinite;
 }
-
-

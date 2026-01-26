@@ -120,7 +120,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <div className="container mx-auto px-4 flex items-center justify-between gap-3 py-2">
 
           {/* Tabs */}
-          <div className="flex gap-4 overflow-x-auto scrollbar-none relative">
+          <div className="flex gap-4 relative">
             {config.navItems.filter(item => item.label !== 'Create Event').map(item => {
               const isActive = location.pathname === item.path;
               return (

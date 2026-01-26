@@ -34,7 +34,8 @@ const ClubEvents: React.FC = () => {
   const [showVenueDialog, setShowVenueDialog] = useState(false);
   const [venueForm, setVenueForm] = useState({ venue: '', time: '' });
 
-  const clubEvents = events.filter(e => e.clubId === user?.clubId || e.clubId === 'club-1');
+  const currentClubId = user?.clubId;
+  const clubEvents = events.filter(e => e.clubId === currentClubId);
   const pendingEvents = clubEvents.filter(e => e.status === 'pending_approval');
   const approvedEvents = clubEvents.filter(e => e.status === 'approved');
   const activeEvents = clubEvents.filter(e => e.status === 'venue_selected');
