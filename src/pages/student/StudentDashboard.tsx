@@ -111,89 +111,98 @@ const StudentDashboard: React.FC = () => {
     !e.participants.some(p => p.studentId === user?.id)
   );
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!selectedEvent || !user) return;
 
-    if (registrationType === 'individual') {
-      // Validate all required fields
-      const uid = registrationData.uid || user.uid || '';
-      const email = registrationData.email || user.email || '';
-      const branch = registrationData.branch.trim();
-      const sec = registrationData.sec.trim();
+    try {
+      if (registrationType === 'individual') {
+        // Validate all required fields
+        const uid = registrationData.uid || user.uid || '';
+        const email = registrationData.email || user.email || '';
+        const branch = registrationData.branch.trim();
+        const sec = registrationData.sec.trim();
 
-      if (!uid || !email || !branch || !sec) {
-        toast({
-          title: 'Registration Failed',
-          description: 'Please fill in all required fields (UID, Email, Branch, and Section)',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      registerForEvent(selectedEvent.id, {
-        eventId: selectedEvent.id,
-        studentId: user.id,
-        studentName: user.name,
-        studentUid: uid,
-        studentEmail: email,
-        studentBranch: branch,
-        studentSec: sec,
-      });
-
-      toast({
-        title: 'Registration Successful!',
-        description: `You have registered for ${selectedEvent.name}`,
-      });
-    } else {
-      // Team registration
-      if (!teamName.trim()) {
-        toast({
-          title: 'Registration Failed',
-          description: 'Please enter a team name',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      const participants: Omit<EventParticipant, 'id' | 'registeredAt'>[] = [];
-      for (const member of teamMembers) {
-        if (!member.name.trim() || !member.uid.trim() || !member.email.trim() || !member.branch.trim() || !member.sec.trim()) {
+        if (!uid || !email || !branch || !sec) {
           toast({
             title: 'Registration Failed',
-            description: 'Please fill in all required fields for all team members',
+            description: 'Please fill in all required fields (UID, Email, Branch, and Section)',
             variant: 'destructive',
           });
           return;
         }
-        participants.push({
+
+        await registerForEvent(selectedEvent.id, {
           eventId: selectedEvent.id,
-          studentId: member.uid, // Use UID as studentId for team members
-          studentName: member.name,
-          studentUid: member.uid,
-          studentEmail: member.email,
-          studentBranch: member.branch,
-          studentSec: member.sec,
+          studentId: user.id,
+          studentName: user.name,
+          studentUid: uid,
+          studentEmail: email,
+          studentBranch: branch,
+          studentSec: sec,
+        });
+
+        toast({
+          title: 'Registration Successful!',
+          description: `You have registered for ${selectedEvent.name}`,
+        });
+      } else {
+        // Team registration
+        if (!teamName.trim()) {
+          toast({
+            title: 'Registration Failed',
+            description: 'Please enter a team name',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        const participants: Omit<EventParticipant, 'id' | 'registeredAt'>[] = [];
+        for (const member of teamMembers) {
+          if (!member.name.trim() || !member.uid.trim() || !member.email.trim() || !member.branch.trim() || !member.sec.trim()) {
+            toast({
+              title: 'Registration Failed',
+              description: 'Please fill in all required fields for all team members',
+              variant: 'destructive',
+            });
+            return;
+          }
+          participants.push({
+            eventId: selectedEvent.id,
+            studentId: member.uid,
+            studentName: member.name,
+            studentUid: member.uid,
+            studentEmail: member.email,
+            studentBranch: member.branch,
+            studentSec: member.sec,
+          });
+        }
+
+        await registerTeamForEvent(selectedEvent.id, participants);
+
+        toast({
+          title: 'Team Registration Successful!',
+          description: `Your team "${teamName}" has registered for ${selectedEvent.name}`,
         });
       }
 
-      registerTeamForEvent(selectedEvent.id, participants);
-
+      setShowRegistration(false);
+      setSelectedEvent(null);
+      setRegistrationData({ uid: '', email: '', branch: '', sec: '' });
+      setRegistrationType('individual');
+      setTeamName('');
+      setNumMembers(2);
+      setTeamMembers([
+        { name: '', uid: '', email: '', branch: '', sec: '', isLeader: true },
+        { name: '', uid: '', email: '', branch: '', sec: '', isLeader: false },
+      ]);
+    } catch (error) {
+      console.error('Registration failed:', error);
       toast({
-        title: 'Team Registration Successful!',
-        description: `Your team "${teamName}" has registered for ${selectedEvent.name}`,
+        title: 'Registration Failed',
+        description: 'Something went wrong. Please try again.',
+        variant: 'destructive',
       });
     }
-
-    setShowRegistration(false);
-    setSelectedEvent(null);
-    setRegistrationData({ uid: '', email: '', branch: '', sec: '' });
-    setRegistrationType('individual');
-    setTeamName('');
-    setNumMembers(2);
-    setTeamMembers([
-      { name: '', uid: '', email: '', branch: '', sec: '', isLeader: true },
-      { name: '', uid: '', email: '', branch: '', sec: '', isLeader: false },
-    ]);
   };
 
   return (

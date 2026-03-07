@@ -47,7 +47,7 @@ const fallbackMembers = [
 ];
 
 const ClubDashboard: React.FC = () => {
-  const { events, clubs, createClub, updateClub } = useEvents();
+  const { events, clubs, createClub, createClubWithId, updateClub } = useEvents();
   const { user } = useAuth();
   const [club, setClub] = useState<Club | null>(null);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
@@ -115,7 +115,7 @@ const ClubDashboard: React.FC = () => {
     let existingClub = clubs.find(c => c.id === user?.clubId);
 
     if (!existingClub && user?.clubId) {
-      existingClub = createClub({
+      createClubWithId(user.clubId, {
         name: `${user.name}'s Club`,
         description: 'Welcome to our club! Update this description to tell everyone about your club.',
         facultyAdvisor: {
@@ -131,11 +131,17 @@ const ClubDashboard: React.FC = () => {
           isPresident: true,
         },
         coreTeam: [],
+      }).then((newClub) => {
+        setClub(newClub);
+      }).catch((err) => {
+        console.error('Failed to create club:', err);
+        setClub(clubs[0] || null);
       });
+      return;
     }
 
     setClub(existingClub || clubs[0] || null);
-  }, [user, clubs, createClub]);
+  }, [user, clubs, createClub, createClubWithId]);
 
   if (!club) return (
     <DashboardLayout>
@@ -361,7 +367,7 @@ const ClubDashboard: React.FC = () => {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button onClick={() => {
+                    <Button onClick={async () => {
                       if (newMember.name && newMember.uid && newMember.branch && newMember.year && newMember.designation) {
                         const member = {
                           id: crypto.randomUUID(),
@@ -371,13 +377,17 @@ const ClubDashboard: React.FC = () => {
                           year: newMember.year,
                         };
                         const updatedCoreTeam = [...club.coreTeam, member];
-                        updateClub(club.id, { coreTeam: updatedCoreTeam });
-                        setClub(prevClub => {
-                          if (!prevClub) return null;
-                          return { ...prevClub, coreTeam: updatedCoreTeam };
-                        });
-                        setNewMember({ name: '', uid: '', branch: '', year: '', designation: '' });
-                        setIsAddMemberOpen(false);
+                        try {
+                          await updateClub(club.id, { coreTeam: updatedCoreTeam });
+                          setClub(prevClub => {
+                            if (!prevClub) return null;
+                            return { ...prevClub, coreTeam: updatedCoreTeam };
+                          });
+                          setNewMember({ name: '', uid: '', branch: '', year: '', designation: '' });
+                          setIsAddMemberOpen(false);
+                        } catch (err) {
+                          console.error('Failed to add member:', err);
+                        }
                       }
                     }}>Add Member</Button>
                   </DialogFooter>

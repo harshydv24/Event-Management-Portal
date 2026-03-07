@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper: get the user's role from the users collection
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    // Helper: check if the user has a specific role
+    function hasRole(role) {
+      return isAuthenticated() && getUserRole() == role;
+    }
+
+    // ── Users Collection ──
+    match /users/{userId} {
+      // Users can read their own profile
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      // Users can create their own profile during signup
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      // Users can only update their own profile
+      allow update: if isAuthenticated() && request.auth.uid == userId;
+      // Only department (admin) can delete user profiles
+      allow delete: if hasRole('department');
+      // Department can read all user profiles
+      allow read: if hasRole('department');
+    }
+
+    // ── Clubs Collection ──
+    match /clubs/{clubId} {
+      // Anyone authenticated can read clubs
+      allow read: if isAuthenticated();
+      // Only department (admin) can create clubs
+      // Also allow club users to create (for initial club setup)
+      allow create: if hasRole('department') || hasRole('club');
+      // Club users can update their own club
+      allow update: if isAuthenticated() && (
+        hasRole('department') ||
+        (hasRole('club') && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.clubId == clubId)
+      );
+      // Only department (admin) can delete clubs
+      allow delete: if hasRole('department');
+    }
+
+    // ── Events Collection ──
+    match /events/{eventId} {
+      // Anyone authenticated can read events
+      allow read: if isAuthenticated();
+      // Only club users can create events
+      allow create: if hasRole('club');
+      // Club users can update their own events; department can update any event (approve/reject)
+      allow update: if isAuthenticated() && (
+        hasRole('department') ||
+        (hasRole('club') && resource.data.clubId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.clubId) ||
+        hasRole('student')
+      );
+      // Only department or the owning club can delete events
+      allow delete: if hasRole('department') ||
+        (hasRole('club') && resource.data.clubId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.clubId);
+    }
+
+    // ── Announcements Collection ──
+    match /announcements/{announcementId} {
+      // Anyone authenticated can read announcements
+      allow read: if isAuthenticated();
+      // Club and department users can create announcements
+      allow create: if hasRole('club') || hasRole('department');
+      // Only the author or department can update/delete
+      allow update, delete: if isAuthenticated() && (
+        hasRole('department') ||
+        resource.data.authorId == request.auth.uid
+      );
+    }
+
+    // ── Registrations (if using sub-collection in future) ──
+    match /events/{eventId}/registrations/{registrationId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if hasRole('department') || hasRole('club');
+    }
+  }
+}

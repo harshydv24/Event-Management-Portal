@@ -1,57 +1,64 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { onAuthStateChanged, sendEmailVerification } from 'firebase/auth';
+import { auth } from '@/config/firebase';
+import {
+  registerUser,
+  loginUser,
+  logoutUser,
+  getUserProfile,
+} from '@/services/authService';
 import { User, UserRole } from '@/types';
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  isEmailVerified: boolean;
   login: (email: string, password: string, role: UserRole) => Promise<boolean>;
   signup: (email: string, password: string, name: string, role: UserRole, uid?: string) => Promise<boolean>;
   logout: () => void;
+  resendVerificationEmail: () => Promise<void>;
+  refreshVerificationStatus: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'eventPortal_users';
-const SESSION_KEY = 'eventPortal_session';
-
-const getStoredUsers = (): Record<string, User & { password: string }> => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : {};
-};
-
-const saveUsers = (users: Record<string, User & { password: string }>) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
-};
-
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
 
+  // Listen for Firebase Auth state changes (handles refresh / session persistence)
   useEffect(() => {
-    const session = localStorage.getItem(SESSION_KEY);
-    if (session) {
-      try {
-        const parsedUser = JSON.parse(session);
-        setUser(parsedUser);
-      } catch {
-        localStorage.removeItem(SESSION_KEY);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const profile = await getUserProfile(firebaseUser.uid);
+          setUser(profile);
+          setIsEmailVerified(firebaseUser.emailVerified);
+        } catch {
+          setUser(null);
+          setIsEmailVerified(false);
+        }
+      } else {
+        setUser(null);
+        setIsEmailVerified(false);
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const login = async (email: string, password: string, role: UserRole): Promise<boolean> => {
-    const users = getStoredUsers();
-    const key = `${email.trim()}_${role}`;
-    const storedUser = users[key];
-
-    if (storedUser && storedUser.password === password.trim()) {
-      const { password: _, ...userWithoutPassword } = storedUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem(SESSION_KEY, JSON.stringify(userWithoutPassword));
+    try {
+      const loggedInUser = await loginUser(email, password, role);
+      setUser(loggedInUser);
+      setIsEmailVerified(auth.currentUser?.emailVerified || false);
       return true;
+    } catch (error) {
+      console.error('Login failed:', error);
+      return false;
     }
-    return false;
   };
 
   const signup = async (
@@ -60,40 +67,56 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     name: string,
     role: UserRole,
     uid?: string,
-    ): Promise<boolean> => {
-    const users = getStoredUsers();
-    const key = `${email.trim()}_${role}`;
-
-    if (users[key]) {
-      return false; // User already exists
+  ): Promise<boolean> => {
+    try {
+      const newUser = await registerUser(email, password, name, role, uid);
+      setUser(newUser);
+      setIsEmailVerified(false); // New signup is never verified yet
+      return true;
+    } catch (error: unknown) {
+      const firebaseError = error as { code?: string; message?: string };
+      console.error('Signup failed:', firebaseError.code, firebaseError.message);
+      throw firebaseError;
     }
-
-    const newUser: User & { password: string } = {
-      id: crypto.randomUUID(),
-      email: email.trim(),
-      password: password.trim(),
-      name: name.trim(),
-      role,
-      uid: role === 'student' ? uid?.trim() : undefined,
-      clubId: role === 'club' ? crypto.randomUUID() : undefined,
-    };
-
-    users[key] = newUser;
-    saveUsers(users);
-
-    const { password: _, ...userWithoutPassword } = newUser;
-    setUser(userWithoutPassword);
-    localStorage.setItem(SESSION_KEY, JSON.stringify(userWithoutPassword));
-    return true;
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem(SESSION_KEY);
+  const logout = async () => {
+    try {
+      await logoutUser();
+      setUser(null);
+      setIsEmailVerified(false);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
+  const resendVerificationEmail = async () => {
+    if (auth.currentUser && !auth.currentUser.emailVerified) {
+      await sendEmailVerification(auth.currentUser);
+    }
+  };
+
+  const refreshVerificationStatus = async (): Promise<boolean> => {
+    if (auth.currentUser) {
+      await auth.currentUser.reload();
+      const verified = auth.currentUser.emailVerified;
+      setIsEmailVerified(verified);
+      return verified;
+    }
+    return false;
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout }}>
+    <AuthContext.Provider value={{
+      user,
+      isLoading,
+      isEmailVerified,
+      login,
+      signup,
+      logout,
+      resendVerificationEmail,
+      refreshVerificationStatus,
+    }}>
       {children}
     </AuthContext.Provider>
   );

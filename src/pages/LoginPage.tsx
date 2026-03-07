@@ -95,17 +95,39 @@ const LoginPage: React.FC = () => {
           });
         }
       } else {
-        const success = await signup(email, password, name, selectedRole, uid);
-        if (success) {
-          toast({
-            title: "Account created!🥳",
-            description: "Welcome to the Event Portal.",
-          });
-          navigate(`/${selectedRole}`);
-        } else {
+        try {
+          const success = await signup(email, password, name, selectedRole, uid);
+          if (success) {
+            toast({
+              title: "Account created! 📧",
+              description: "Please check your email to verify your account.",
+            });
+            navigate('/verify-email');
+          }
+        } catch (err: unknown) {
+          const firebaseErr = err as { code?: string; message?: string };
+          let errorMsg = "Something went wrong. Please try again.";
+
+          switch (firebaseErr.code) {
+            case "auth/email-already-in-use":
+              errorMsg = "An account with this email already exists. Try logging in instead.";
+              break;
+            case "auth/weak-password":
+              errorMsg = "Password must be at least 6 characters long.";
+              break;
+            case "auth/invalid-email":
+              errorMsg = "Please enter a valid email address.";
+              break;
+            case "auth/network-request-failed":
+              errorMsg = "Network error. Please check your internet connection.";
+              break;
+            default:
+              errorMsg = firebaseErr.message || errorMsg;
+          }
+
           toast({
             title: "Signup failed",
-            description: "An account with this email already exists.",
+            description: errorMsg,
             variant: "destructive",
           });
         }
@@ -218,7 +240,7 @@ const LoginPage: React.FC = () => {
             <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-2">
               <Icon className="w-7 h-7" /> {/* icon on login/sign up box */}
             </div>
-            
+
             <CardTitle className="text-2xl font-bold tracking-tight">
               {config.title}
             </CardTitle>
@@ -237,7 +259,7 @@ const LoginPage: React.FC = () => {
 
 
               {/* form for sign up */}
-              <form onSubmit={handleSubmit} className="space-y-4">                
+              <form onSubmit={handleSubmit} className="space-y-4">
                 {authMode === "signup" && (
                   <div className="animate-fade-in space-y-4">
                     <div className="space-y-1.5">
@@ -283,53 +305,21 @@ const LoginPage: React.FC = () => {
                 {/* input part for login */}
                 {authMode === "login" && (
                   <div className="animate-fade-in space-y-4">
-                    {selectedRole === "student" && (
-                      <div className="space-y-1.5 animate-fade-in">
-                        <Label>University ID (UID)</Label>
+                    {/* Email — shown for ALL roles (Firebase Auth requires email) */}
+                    <div className="space-y-1.5 relative">
+                      <Label>Email</Label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
                         <Input
-                          placeholder="Enter your UID"
-                          value={uid}
-                          onChange={(e) => setUid(e.target.value)}
+                          className="pl-10"
+                          type="email"
+                          placeholder="you@example.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
                           required
                         />
                       </div>
-                    )}
-
-                    {/* Email */}
-                    {selectedRole === "club" && (
-                      <div className="space-y-1.5 relative">
-                        <Label>Email</Label>
-                        <div className="relative">
-                          <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
-                          <Input
-                            className="pl-10"
-                            type="email"
-                            placeholder="you@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Email */}
-                    {selectedRole === "department" && (
-                      <div className="space-y-1.5 relative">
-                        <Label>Email</Label>
-                        <div className="relative">
-                          <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
-                          <Input
-                            className="pl-10"
-                            type="email"
-                            placeholder="you@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                          />
-                        </div>
-                      </div>
-                    )}
+                    </div>
                   </div>
                 )}
 

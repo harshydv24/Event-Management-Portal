@@ -86,18 +86,28 @@ const DepartmentDashboard: React.FC = () => {
     return events;
   }, [events, activeTab]);
 
-  const handleApprove = (ev: Event) => {
-    approveEvent(ev.id);
-    toast({ title: "Approved", description: `${ev.name} approved successfully` });
+  const handleApprove = async (ev: Event) => {
+    try {
+      await approveEvent(ev.id);
+      toast({ title: "Approved", description: `${ev.name} approved successfully` });
+    } catch (error) {
+      console.error('Approval failed:', error);
+      toast({ title: "Error", description: "Failed to approve event", variant: "destructive" });
+    }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (!selectedEvent) return;
-    rejectEvent(selectedEvent.id, feedback);
-    toast({ title: "Rejected", description: "Feedback sent to club" });
-    setRejectOpen(false);
-    setFeedback("");
-    setSelectedEvent(null);
+    try {
+      await rejectEvent(selectedEvent.id, feedback);
+      toast({ title: "Rejected", description: "Feedback sent to club" });
+      setRejectOpen(false);
+      setFeedback("");
+      setSelectedEvent(null);
+    } catch (error) {
+      console.error('Rejection failed:', error);
+      toast({ title: "Error", description: "Failed to reject event", variant: "destructive" });
+    }
   };
 
   return (

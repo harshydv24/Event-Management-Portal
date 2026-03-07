@@ -36,6 +36,8 @@ import {
 } from "@/components/ui/dialog";
 
 import { useToast } from "@/hooks/use-toast";
+// TODO: Re-enable when Firebase Storage is set up
+// import { uploadEventFile } from "@/services/storageService";
 
 const CreateEvent: React.FC = () => {
   const navigate = useNavigate();
@@ -163,11 +165,13 @@ const CreateEvent: React.FC = () => {
     // If validation passes, show confirmation dialog
     setConfirmOpen(true);
   };
-  const mockUpload = async (file: File): Promise<string> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(URL.createObjectURL(file)); // fake URL
-      }, 1200);
+  // Temporary base64 fallback until Firebase Storage is enabled
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
     });
   };
 
@@ -180,7 +184,7 @@ const CreateEvent: React.FC = () => {
 
     setUploading((prev) => ({ ...prev, [type]: true }));
 
-    const url = await mockUpload(file);
+    const url = await fileToBase64(file);
 
     if (type === "proposal") {
       setFormData((prev) => ({
@@ -211,28 +215,36 @@ const CreateEvent: React.FC = () => {
     setConfirmOpen(false);
     setIsSubmitting(true);
 
-    createEvent({
-      name: formData.name,
-      description: formData.description,
-      date: formData.date,
-      expectedParticipants:
-        parseInt(formData.expectedParticipants) || 0,
-      guestName: formData.guestName,
-      proposalPdf: formData.proposalUrl,
-      m2mPdf: formData.m2mUrl,
-      clubId: user?.clubId || "",
-      clubName: club?.name || "Unknown Club",
-      status: "pending_approval"
-    });
+    try {
+      await createEvent({
+        name: formData.name,
+        description: formData.description,
+        date: formData.date,
+        expectedParticipants:
+          parseInt(formData.expectedParticipants) || 0,
+        guestName: formData.guestName,
+        proposalPdf: formData.proposalUrl,
+        m2mPdf: formData.m2mUrl,
+        clubId: user?.clubId || "",
+        clubName: club?.name || "Unknown Club",
+        status: "pending_approval"
+      });
 
-    // Fake success animation delay
-    setTimeout(() => {
       toast({
         title: "Event Submitted!",
         description: "Your event is now pending approval."
       });
       navigate("/club/events");
-    }, 800);
+    } catch (error) {
+      console.error('Failed to create event:', error);
+      toast({
+        title: "Submission Failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

@@ -12,24 +12,27 @@ import ClubDashboard from "./pages/club/ClubDashboard";
 import CreateEvent from "./pages/club/CreateEvent";
 import ClubEvents from "./pages/club/ClubEvents";
 import DepartmentDashboard from "./pages/department/DepartmentDashboard";
+import VerifyEmail from "./pages/VerifyEmail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode; role: string }) => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isEmailVerified } = useAuth();
   if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (!user) return <Navigate to="/" replace />;
+  if (!isEmailVerified) return <Navigate to="/verify-email" replace />;
   if (user.role !== role) return <Navigate to={`/${user.role}`} replace />;
   return <>{children}</>;
 };
 
 const AppRoutes = () => {
-  const { user } = useAuth();
+  const { user, isEmailVerified } = useAuth();
 
   return (
     <Routes>
-      <Route path="/" element={user ? <Navigate to={`/${user.role}`} replace /> : <LoginPage />} />
+      <Route path="/" element={user ? (isEmailVerified ? <Navigate to={`/${user.role}`} replace /> : <Navigate to="/verify-email" replace />) : <LoginPage />} />
+      <Route path="/verify-email" element={user ? <VerifyEmail /> : <Navigate to="/" replace />} />
       <Route path="/student" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
       <Route path="/student/events" element={<ProtectedRoute role="student"><StudentEvents /></ProtectedRoute>} />
       <Route path="/club" element={<ProtectedRoute role="club"><ClubDashboard /></ProtectedRoute>} />

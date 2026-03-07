@@ -1,213 +1,172 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Event, EventParticipant, Club, ClubMember } from '@/types';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
+import { db, auth } from '@/config/firebase';
+import * as eventService from '@/services/eventService';
+import * as clubService from '@/services/clubService';
+import { Event, Club, EventParticipant } from '@/types';
 
 interface EventContextType {
   events: Event[];
   clubs: Club[];
-  createEvent: (event: Omit<Event, 'id' | 'createdAt' | 'participants'>) => void;
-  updateEvent: (id: string, updates: Partial<Event>) => void;
-  approveEvent: (id: string) => void;
-  rejectEvent: (id: string, feedback: string) => void;
-  selectVenue: (eventId: string, venue: string, time: string) => void;
-  registerForEvent: (eventId: string, participant: Omit<EventParticipant, 'id' | 'registeredAt'>) => void;
-  registerTeamForEvent: (eventId: string, participants: Omit<EventParticipant, 'id' | 'registeredAt'>[]) => void;
+  isLoading: boolean;
+  createEvent: (event: Omit<Event, 'id' | 'createdAt' | 'participants'>) => Promise<void>;
+  updateEventStatus: (eventId: string, status: string, feedback?: string) => Promise<void>;
+  registerForEvent: (eventId: string, participant: Omit<EventParticipant, 'id' | 'registeredAt'>) => Promise<void>;
+  registerTeamForEvent: (eventId: string, participants: Omit<EventParticipant, 'id' | 'registeredAt'>[]) => Promise<void>;
+  selectVenue: (eventId: string, venue: string, time: string) => Promise<void>;
   getClub: (clubId: string) => Club | undefined;
-  updateClub: (clubId: string, updates: Partial<Club>) => void;
-  createClub: (club: Omit<Club, 'id' | 'createdAt' | 'eventsCount'>) => Club;
+  updateClub: (clubId: string, updates: Partial<Club>) => Promise<void>;
+  createClub: (club: Omit<Club, 'id' | 'createdAt' | 'eventsCount'>) => Promise<Club>;
+  createClubWithId: (clubId: string, club: Omit<Club, 'id' | 'createdAt' | 'eventsCount'>) => Promise<Club>;
 }
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
 
-const EVENTS_KEY = 'eventPortal_events';
-const CLUBS_KEY = 'eventPortal_clubs';
-
-// Sample data for demo
-const sampleClubs: Club[] = [
-  {
-    id: 'club-1',
-    name: 'Tech Innovators Club',
-    description: 'A club dedicated to exploring and innovating with cutting-edge technology. We organize hackathons, workshops, and tech talks.',
-    facultyAdvisor: {
-      id: 'fa-1',
-      name: 'Dr. Sarah Mitchell',
-      designation: 'Associate Professor, Computer Science',
-      isFacultyAdvisor: true,
-    },
-    president: {
-      id: 'pres-1',
-      name: 'Alex Johnson',
-      designation: 'President',
-      isPresident: true,
-    },
-    coreTeam: [
-      { id: 'ct-1', name: 'Emily Chen', designation: 'Vice President' },
-      { id: 'ct-2', name: 'Michael Brown', designation: 'Technical Lead' },
-      { id: 'ct-3', name: 'Jessica Lee', designation: 'Event Coordinator' },
-      { id: 'ct-4', name: 'David Wilson', designation: 'Marketing Head' },
-    ],
-    eventsCount: 12,
-    createdAt: '2023-01-15',
-  },
-];
-
-const sampleEvents: Event[] = [
-  {
-    id: 'event-1',
-    name: 'Annual Hackathon 2024',
-    description: 'A 24-hour coding competition where students build innovative solutions to real-world problems.',
-    date: '2024-03-15',
-    time: '09:00 AM',
-    venue: 'C1 Auditorium',
-    expectedParticipants: 200,
-    guestName: 'John Smith, CTO TechCorp',
-    clubId: 'club-1',
-    clubName: 'Tech Innovators Club',
-    status: 'venue_selected',
-    participants: [],
-    createdAt: '2024-01-10',
-  },
-  {
-    id: 'event-2',
-    name: 'AI Workshop Series',
-    description: 'A hands-on workshop series covering machine learning fundamentals and practical applications.',
-    date: '2024-04-01',
-    expectedParticipants: 100,
-    clubId: 'club-1',
-    clubName: 'Tech Innovators Club',
-    status: 'pending_approval',
-    participants: [],
-    createdAt: '2024-02-01',
-  },
-];
-
 export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Start onSnapshot listeners only AFTER user is authenticated
   useEffect(() => {
-    const storedEvents = localStorage.getItem(EVENTS_KEY);
-    const storedClubs = localStorage.getItem(CLUBS_KEY);
-    
-    if (storedEvents) {
-      setEvents(JSON.parse(storedEvents));
-    } else {
-      setEvents(sampleEvents);
-      localStorage.setItem(EVENTS_KEY, JSON.stringify(sampleEvents));
-    }
+    let unsubEvents: (() => void) | null = null;
+    let unsubClubs: (() => void) | null = null;
 
-    if (storedClubs) {
-      setClubs(JSON.parse(storedClubs));
-    } else {
-      setClubs(sampleClubs);
-      localStorage.setItem(CLUBS_KEY, JSON.stringify(sampleClubs));
-    }
+    const unsubAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      // Clean up previous listeners when auth state changes
+      if (unsubEvents) { unsubEvents(); unsubEvents = null; }
+      if (unsubClubs) { unsubClubs(); unsubClubs = null; }
+
+      if (!firebaseUser) {
+        // Not logged in — clear data and stop loading
+        setEvents([]);
+        setClubs([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // User is authenticated — start real-time listeners
+      const eventsQuery = query(collection(db, 'events'), orderBy('createdAt', 'desc'));
+      unsubEvents = onSnapshot(eventsQuery, (snapshot) => {
+        const eventsData = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            name: data.name,
+            description: data.description,
+            date: data.date,
+            time: data.time,
+            venue: data.venue,
+            expectedParticipants: data.expectedParticipants,
+            guestName: data.guestName,
+            poster: data.poster,
+            proposalPdf: data.proposalPdf,
+            m2mPdf: data.m2mPdf,
+            clubId: data.clubId,
+            clubName: data.clubName,
+            departmentName: data.departmentName,
+            organizerName: data.organizerName,
+            status: data.status,
+            feedback: data.feedback,
+            participants: data.participants || [],
+            createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          } as Event;
+        });
+        setEvents(eventsData);
+        setIsLoading(false);
+      }, (error) => {
+        console.error('Error listening to events:', error);
+        setIsLoading(false);
+      });
+
+      const clubsQuery = query(collection(db, 'clubs'), orderBy('createdAt', 'desc'));
+      unsubClubs = onSnapshot(clubsQuery, (snapshot) => {
+        const clubsData = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            name: data.name,
+            description: data.description,
+            logo: data.logo,
+            facultyAdvisor: data.facultyAdvisor,
+            president: data.president,
+            coreTeam: data.coreTeam || [],
+            eventsCount: data.eventsCount || 0,
+            createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          } as Club;
+        });
+        setClubs(clubsData);
+      }, (error) => {
+        console.error('Error listening to clubs:', error);
+      });
+    });
+
+    return () => {
+      unsubAuth();
+      if (unsubEvents) unsubEvents();
+      if (unsubClubs) unsubClubs();
+    };
   }, []);
 
-  const saveEvents = (newEvents: Event[]) => {
-    setEvents(newEvents);
-    localStorage.setItem(EVENTS_KEY, JSON.stringify(newEvents));
-  };
+  const handleCreateEvent = useCallback(async (event: Omit<Event, 'id' | 'createdAt' | 'participants'>) => {
+    await eventService.createEvent(event);
+  }, []);
 
-  const saveClubs = (newClubs: Club[]) => {
-    setClubs(newClubs);
-    localStorage.setItem(CLUBS_KEY, JSON.stringify(newClubs));
-  };
+  const handleUpdateEventStatus = useCallback(async (eventId: string, status: string, feedback?: string) => {
+    await eventService.updateEventStatus(eventId, status, feedback);
+  }, []);
 
-  const createEvent = (event: Omit<Event, 'id' | 'createdAt' | 'participants'>) => {
-    const newEvent: Event = {
-      ...event,
-      id: crypto.randomUUID(),
-      participants: [],
-      createdAt: new Date().toISOString(),
-    };
-    saveEvents([...events, newEvent]);
-  };
+  const handleSelectVenue = useCallback(async (eventId: string, venue: string, time: string) => {
+    await eventService.selectVenue(eventId, venue, time);
+  }, []);
 
-  const updateEvent = (id: string, updates: Partial<Event>) => {
-    const updated = events.map(e => e.id === id ? { ...e, ...updates } : e);
-    saveEvents(updated);
-  };
-
-  const approveEvent = (id: string) => {
-    updateEvent(id, { status: 'approved' });
-  };
-
-  const rejectEvent = (id: string, feedback: string) => {
-    updateEvent(id, { status: 'rejected', feedback });
-  };
-
-  const selectVenue = (eventId: string, venue: string, time: string) => {
-    updateEvent(eventId, { venue, time, status: 'venue_selected' });
-  };
-
-  const registerForEvent = (
+  const handleRegisterForEvent = useCallback(async (
     eventId: string,
     participant: Omit<EventParticipant, 'id' | 'registeredAt'>
   ) => {
-    const event = events.find(e => e.id === eventId);
-    if (!event) return;
+    await eventService.registerForEvent(eventId, participant);
+  }, []);
 
-    const newParticipant: EventParticipant = {
-      ...participant,
-      id: crypto.randomUUID(),
-      registeredAt: new Date().toISOString(),
-    };
-
-    updateEvent(eventId, {
-      participants: [...event.participants, newParticipant],
-    });
-  };
-
-  const registerTeamForEvent = (
+  const handleRegisterTeamForEvent = useCallback(async (
     eventId: string,
     participants: Omit<EventParticipant, 'id' | 'registeredAt'>[]
   ) => {
-    const event = events.find(e => e.id === eventId);
-    if (!event) return;
+    await eventService.registerTeamForEvent(eventId, participants);
+  }, []);
 
-    const newParticipants: EventParticipant[] = participants.map(participant => ({
-      ...participant,
-      id: crypto.randomUUID(),
-      registeredAt: new Date().toISOString(),
-    }));
+  const getClub = useCallback((clubId: string) => {
+    return clubs.find(c => c.id === clubId);
+  }, [clubs]);
 
-    updateEvent(eventId, {
-      participants: [...event.participants, ...newParticipants],
-    });
-  };
+  const handleUpdateClub = useCallback(async (clubId: string, updates: Partial<Club>) => {
+    await clubService.updateClub(clubId, updates);
+  }, []);
 
-  const getClub = (clubId: string) => clubs.find(c => c.id === clubId);
-
-  const updateClub = (clubId: string, updates: Partial<Club>) => {
-    const updated = clubs.map(c => c.id === clubId ? { ...c, ...updates } : c);
-    saveClubs(updated);
-  };
-
-  const createClub = (club: Omit<Club, 'id' | 'createdAt' | 'eventsCount'>): Club => {
-    const newClub: Club = {
-      ...club,
-      id: crypto.randomUUID(),
-      eventsCount: 0,
-      createdAt: new Date().toISOString(),
-    };
-    saveClubs([...clubs, newClub]);
+  const handleCreateClub = useCallback(async (club: Omit<Club, 'id' | 'createdAt' | 'eventsCount'>): Promise<Club> => {
+    const newClub = await clubService.createClub(club);
     return newClub;
-  };
+  }, []);
+
+  const handleCreateClubWithId = useCallback(async (clubId: string, club: Omit<Club, 'id' | 'createdAt' | 'eventsCount'>): Promise<Club> => {
+    const newClub = await clubService.createClubWithId(clubId, club);
+    return newClub;
+  }, []);
 
   return (
     <EventContext.Provider value={{
       events,
       clubs,
-      createEvent,
-      updateEvent,
-      approveEvent,
-      rejectEvent,
-      selectVenue,
-      registerForEvent,
-      registerTeamForEvent,
+      isLoading,
+      createEvent: handleCreateEvent,
+      updateEventStatus: handleUpdateEventStatus,
+      selectVenue: handleSelectVenue,
+      registerForEvent: handleRegisterForEvent,
+      registerTeamForEvent: handleRegisterTeamForEvent,
       getClub,
-      updateClub,
-      createClub,
+      updateClub: handleUpdateClub,
+      createClub: handleCreateClub,
+      createClubWithId: handleCreateClubWithId,
     }}>
       {children}
     </EventContext.Provider>
