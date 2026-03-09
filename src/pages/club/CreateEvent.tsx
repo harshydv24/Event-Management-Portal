@@ -227,6 +227,7 @@ const CreateEvent: React.FC = () => {
         m2mPdf: formData.m2mUrl,
         clubId: user?.clubId || "",
         clubName: club?.name || "Unknown Club",
+        organizerName: club?.name || "Unknown Club",
         status: "pending_approval"
       });
 

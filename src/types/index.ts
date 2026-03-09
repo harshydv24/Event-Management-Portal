@@ -88,3 +88,13 @@ export const VENUES: Venue[] = [
   { id: 'open-air', name: 'Open Air Theatre', capacity: 1000, available: true },
   { id: 'seminar-hall', name: 'Seminar Hall', capacity: 200, available: true },
 ];
+
+export interface Notification {
+  id: string;
+  userId: string;
+  role: UserRole;
+  message: string;
+  relatedEventId?: string;
+  isRead: boolean;
+  createdAt: string;
+}

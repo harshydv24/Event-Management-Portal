@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { EventProvider } from "@/contexts/EventContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import LoginPage from "./pages/LoginPage";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import StudentEvents from "./pages/student/StudentEvents";
@@ -19,7 +20,11 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode; role: string }) => {
   const { user, isLoading, isEmailVerified } = useAuth();
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-white/70 backdrop-blur-sm fixed inset-0 z-50">
+      <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+    </div>
+  );
   if (!user) return <Navigate to="/" replace />;
   if (!isEmailVerified) return <Navigate to="/verify-email" replace />;
   if (user.role !== role) return <Navigate to={`/${user.role}`} replace />;
@@ -55,7 +60,9 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <EventProvider>
-            <AppRoutes />
+            <NotificationProvider>
+              <AppRoutes />
+            </NotificationProvider>
           </EventProvider>
         </AuthProvider>
       </BrowserRouter>

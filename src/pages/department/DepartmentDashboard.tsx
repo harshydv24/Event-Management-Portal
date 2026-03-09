@@ -22,7 +22,7 @@ import { Event } from "@/types";
 type TabType = "all" | "pending" | "approved" | "rejected";
 
 const DepartmentDashboard: React.FC = () => {
-  const { events, approveEvent, rejectEvent } = useEvents();
+  const { events, updateEventStatus } = useEvents();
   const { toast } = useToast();
   const location = useLocation();
 
@@ -88,7 +88,7 @@ const DepartmentDashboard: React.FC = () => {
 
   const handleApprove = async (ev: Event) => {
     try {
-      await approveEvent(ev.id);
+      await updateEventStatus(ev.id, 'approved');
       toast({ title: "Approved", description: `${ev.name} approved successfully` });
     } catch (error) {
       console.error('Approval failed:', error);
@@ -99,7 +99,7 @@ const DepartmentDashboard: React.FC = () => {
   const handleReject = async () => {
     if (!selectedEvent) return;
     try {
-      await rejectEvent(selectedEvent.id, feedback);
+      await updateEventStatus(selectedEvent.id, 'rejected', feedback);
       toast({ title: "Rejected", description: "Feedback sent to club" });
       setRejectOpen(false);
       setFeedback("");
@@ -207,7 +207,7 @@ const DepartmentDashboard: React.FC = () => {
 
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-muted-foreground">
-                        <span className="font-medium text-foreground">{ev.organizerName || 'Unknown Organizer'}</span>
+                        <span className="font-medium text-foreground">{ev.organizerName || ev.clubName || 'Unknown Organizer'}</span>
                       </div>
 
                       <div className="flex gap-2">
@@ -278,7 +278,7 @@ const DepartmentDashboard: React.FC = () => {
 
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-muted-foreground">
-                        <span className="font-medium text-foreground">{ev.organizerName || 'Unknown Organizer'}</span>
+                        <span className="font-medium text-foreground">{ev.organizerName || ev.clubName || 'Unknown Organizer'}</span>
                       </div>
 
                       <div className="flex gap-2">
@@ -345,7 +345,7 @@ const DepartmentDashboard: React.FC = () => {
 
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-muted-foreground">
-                        <span className="font-medium text-foreground">{ev.organizerName || 'Unknown Organizer'}</span>
+                        <span className="font-medium text-foreground">{ev.organizerName || ev.clubName || 'Unknown Organizer'}</span>
                       </div>
 
                       <div className="flex gap-2">
@@ -411,7 +411,7 @@ const DepartmentDashboard: React.FC = () => {
 
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-muted-foreground">
-                        <span className="font-medium text-foreground">{ev.organizerName || 'Unknown Organizer'}</span>
+                        <span className="font-medium text-foreground">{ev.organizerName || ev.clubName || 'Unknown Organizer'}</span>
                       </div>
 
                       <div className="flex gap-2">
@@ -642,7 +642,7 @@ const DepartmentDashboard: React.FC = () => {
                           </div>
                           <div className="flex-1">
                             <p className="text-sm font-semibold text-slate-700/70 mb-1">Organizer</p>
-                            <p className="text-foreground font-medium">{selectedEvent.organizerName || 'Unknown Organizer'}</p>
+                            <p className="text-foreground font-medium">{selectedEvent.organizerName || selectedEvent.clubName || 'Unknown Organizer'}</p>
                           </div>
                         </div>
                       </div>

@@ -83,5 +83,19 @@ service cloud.firestore {
       allow create: if isAuthenticated();
       allow update, delete: if hasRole('department') || hasRole('club');
     }
+
+    // ── Notifications Collection ──
+    match /notifications/{notificationId} {
+      // Users can read their own notifications
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // Any authenticated user can create notifications (triggered by actions)
+      allow create: if isAuthenticated();
+      // Users can update their own notifications (mark as read)
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // Users can delete their own notifications
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // Allow listing notifications filtered by userId
+      allow list: if isAuthenticated();
+    }
   }
 }

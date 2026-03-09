@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, where, getDocs } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '@/config/firebase';
 import * as eventService from '@/services/eventService';
 import * as clubService from '@/services/clubService';
+import * as notificationService from '@/services/notificationService';
 import { Event, Club, EventParticipant } from '@/types';
 
 interface EventContextType {
@@ -110,12 +111,59 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
 
   const handleCreateEvent = useCallback(async (event: Omit<Event, 'id' | 'createdAt' | 'participants'>) => {
-    await eventService.createEvent(event);
+    const newEvent = await eventService.createEvent(event);
+    // Notify all department users about the new event pending approval
+    try {
+      await notificationService.createNotificationsForRole(
+        'department',
+        `New event "${event.name}" submitted by ${event.clubName} for approval`,
+        newEvent.id
+      );
+    } catch (err) {
+      console.error('Failed to send notification:', err);
+    }
   }, []);
 
   const handleUpdateEventStatus = useCallback(async (eventId: string, status: string, feedback?: string) => {
     await eventService.updateEventStatus(eventId, status, feedback);
-  }, []);
+    // Find the event to get details for notification
+    try {
+      const event = events.find(e => e.id === eventId);
+      if (event && (status === 'approved' || status === 'rejected')) {
+        const statusText = status === 'approved' ? 'approved ✅' : 'rejected ❌';
+        // Notify the club owner (find user by clubId)
+        const usersQuery = query(
+          collection(db, 'users'),
+          where('clubId', '==', event.clubId)
+        );
+        const usersSnap = await getDocs(usersQuery);
+        for (const userDoc of usersSnap.docs) {
+          await notificationService.createNotificationForUser(
+            userDoc.id,
+            'club',
+            `Your event "${event.name}" has been ${statusText}${feedback ? ': ' + feedback : ''}`,
+            eventId
+          );
+        }
+
+        // Also notify registered students about the status change
+        const notifiedStudents = new Set<string>();
+        for (const participant of event.participants) {
+          if (!notifiedStudents.has(participant.studentId)) {
+            notifiedStudents.add(participant.studentId);
+            await notificationService.createNotificationForUser(
+              participant.studentId,
+              'student',
+              `Event "${event.name}" has been ${statusText}`,
+              eventId
+            );
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to send notification:', err);
+    }
+  }, [events]);
 
   const handleSelectVenue = useCallback(async (eventId: string, venue: string, time: string) => {
     await eventService.selectVenue(eventId, venue, time);
@@ -126,7 +174,28 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     participant: Omit<EventParticipant, 'id' | 'registeredAt'>
   ) => {
     await eventService.registerForEvent(eventId, participant);
-  }, []);
+    // Notify the club owner about the new registration
+    try {
+      const event = events.find(e => e.id === eventId);
+      if (event) {
+        const usersQuery = query(
+          collection(db, 'users'),
+          where('clubId', '==', event.clubId)
+        );
+        const usersSnap = await getDocs(usersQuery);
+        for (const userDoc of usersSnap.docs) {
+          await notificationService.createNotificationForUser(
+            userDoc.id,
+            'club',
+            `${participant.studentName} registered for your event "${event.name}"`,
+            eventId
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Failed to send notification:', err);
+    }
+  }, [events]);
 
   const handleRegisterTeamForEvent = useCallback(async (
     eventId: string,

@@ -1,5 +1,6 @@
 import React from 'react';
 import ThemeToggle from "@/components/ThemeToggle";
+import NotificationPanel from '@/components/NotificationPanel';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,6 @@ import {
   GraduationCap,
   Users,
   Building2,
-  Bell,
   Sun,
   Moon
 } from 'lucide-react';
@@ -81,16 +81,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
           <div className="flex items-center gap-2">
             {/* Notification Bell */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-white bg-white/10 hover:bg-white/30 relative rounded-full w-9 h-9 p-0 flex items-center justify-center border border-white/30"
-              title="Notifications"
-            >
-              <Bell className="w-4 h-4" />
-              {/* Notification dot - can be made dynamic */}
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </Button>
+            <NotificationPanel />
 
             <ThemeToggle />
 
