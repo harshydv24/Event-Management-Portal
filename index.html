@@ -1,26 +1,37 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- TODO: Document and title -->
   <title>Event Management</title>
-  <meta name="description" content="A react based evet management web app" />
-  <meta name="author" content="Innovators" /> <!--Our group name-->
-  <link rel="icon" href="/images/icon1.png"> <!--Icon-->
+  <meta name="description" content="A react based event management web app" />
+  <meta name="author" content="Innovators" />
+  <link rel="icon" href="/images/icon1.png">
 
-  <!-- TODO: Update og:title to match your application name -->
   <meta property="og:title" content="Event Management Portal App" />
-  <meta property="og:description" content="A react based evet management web app" />
+  <meta property="og:description" content="A react based event management web app" />
   <meta property="og:type" content="website" />
 
-  <!-- Google Fonts -->
+  <!-- Prevent FOUC: apply saved theme before first paint -->
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem('event-portal-theme');
+        var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var resolved = theme === 'light' ? 'light' : (theme === 'dark' ? 'dark' : (systemDark ? 'dark' : 'light'));
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(resolved);
+        document.documentElement.style.colorScheme = resolved;
+      } catch (e) { }
+    })();
+  </script>
+
+  <!-- Google Fonts: Outfit with explicit weight steps used by the design system -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 
 <body>

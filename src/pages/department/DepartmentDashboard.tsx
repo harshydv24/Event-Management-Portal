@@ -30,6 +30,7 @@ const DepartmentDashboard: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -112,7 +113,7 @@ const DepartmentDashboard: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8 animate-fade-in">
+      <div key={location.pathname} className="space-y-8 animate-fade-in">
 
         {/* Header */}
         <div>
@@ -126,31 +127,31 @@ const DepartmentDashboard: React.FC = () => {
             <StatCard
               label="Total Events"
               value={stats.total}
-              color="text-blue-600"
+              colorType="primary"
               icon={CalendarCheck}
             />
             <StatCard
               label="Pending Review"
               value={stats.pending}
-              color="text-amber-600"
+              colorType="warning"
               icon={Hourglass}
             />
             <StatCard
               label="Approved"
               value={stats.approved}
-              color="text-green-600"
+              colorType="success"
               icon={CheckCircle2}
             />
             <StatCard
               label="Rejected"
               value={stats.rejected}
-              color="text-red-600"
+              colorType="destructive"
               icon={XCircle}
             />
             <StatCard
               label="Registered Clubs"
               value={clubStats.length}
-              color="text-purple-600"
+              colorType="purple"
               icon={Users}
             />
           </div>
@@ -160,7 +161,7 @@ const DepartmentDashboard: React.FC = () => {
         {/* Events Tabs - shown only on events page */}
         {!isClubsPage && (
           <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as TabType)}>
-            <TabsList className="bg-muted/40">
+            <TabsList className="surface-translucent-4 border border-subtle">
               <TabsTrigger value="all">All ({stats.total})</TabsTrigger>
               <TabsTrigger value="pending">Pending ({stats.pending})</TabsTrigger>
               <TabsTrigger value="approved">Approved ({stats.approved})</TabsTrigger>
@@ -211,19 +212,25 @@ const DepartmentDashboard: React.FC = () => {
                       </div>
 
                       <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => setSelectedEvent(ev)}>
+                        <Button variant="outline" onClick={() => { setSelectedEvent(ev); setIsViewDialogOpen(true); }}>
                           <Eye className="w-4 h-4 mr-2" />
                           View Details
                         </Button>
                         {ev.status === "pending_approval" && (
                           <>
-                            <Button className="bg-success hover:bg-success/90" onClick={() => handleApprove(ev)}>
-                              <Check className="w-4 h-4 mr-2" />
-                              Approve
+                            <Button
+                              variant="outline"
+                              className="bg-success/15 text-success border-success/20 hover:bg-success/25 hover:text-success hover:border-success/30 transition-colors"
+                              onClick={() => handleApprove(ev)}
+                            >
+                              <Check className="w-4 h-4 mr-2" /> Approve
                             </Button>
-                            <Button variant="destructive" onClick={() => { setSelectedEvent(ev); setRejectOpen(true); }}>
-                              <X className="w-4 h-4 mr-2" />
-                              Reject
+                            <Button
+                              variant="outline"
+                              className="bg-destructive/15 text-destructive border-destructive/20 hover:bg-destructive/25 hover:text-destructive hover:border-destructive/30 transition-colors"
+                              onClick={() => { setSelectedEvent(ev); setRejectOpen(true); }}
+                            >
+                              <X className="w-4 h-4 mr-2" /> Reject
                             </Button>
                           </>
                         )}
@@ -282,17 +289,23 @@ const DepartmentDashboard: React.FC = () => {
                       </div>
 
                       <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => setSelectedEvent(ev)}>
+                        <Button variant="outline" onClick={() => { setSelectedEvent(ev); setIsViewDialogOpen(true); }}>
                           <Eye className="w-4 h-4 mr-2" />
                           View Details
                         </Button>
-                        <Button className="bg-success hover:bg-success/90" onClick={() => handleApprove(ev)}>
-                          <Check className="w-4 h-4 mr-2" />
-                          Approve
+                        <Button
+                          variant="outline"
+                          className="bg-success/15 text-success border-success/20 hover:bg-success/25 hover:text-success hover:border-success/30 transition-colors"
+                          onClick={() => handleApprove(ev)}
+                        >
+                          <Check className="w-4 h-4 mr-2" /> Approve
                         </Button>
-                        <Button variant="destructive" onClick={() => { setSelectedEvent(ev); setRejectOpen(true); }}>
-                          <X className="w-4 h-4 mr-2" />
-                          Reject
+                        <Button
+                          variant="outline"
+                          className="bg-destructive/15 text-destructive border-destructive/20 hover:bg-destructive/25 hover:text-destructive hover:border-destructive/30 transition-colors"
+                          onClick={() => { setSelectedEvent(ev); setRejectOpen(true); }}
+                        >
+                          <X className="w-4 h-4 mr-2" /> Reject
                         </Button>
                       </div>
                     </div>
@@ -349,7 +362,7 @@ const DepartmentDashboard: React.FC = () => {
                       </div>
 
                       <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => setSelectedEvent(ev)}>
+                        <Button variant="outline" onClick={() => { setSelectedEvent(ev); setIsViewDialogOpen(true); }}>
                           <Eye className="w-4 h-4 mr-2" />
                           View Details
                         </Button>
@@ -403,7 +416,7 @@ const DepartmentDashboard: React.FC = () => {
                     </div>
 
                     {ev.feedback && (
-                      <div className="mb-4 text-xs rounded-md bg-red-50 border border-red-200 text-red-700 p-3">
+                      <div className="mb-4 text-xs rounded-md surface-translucent-2 border border-border text-muted-foreground p-3">
                         <span className="font-medium">Rejection Feedback: </span>
                         {ev.feedback}
                       </div>
@@ -415,7 +428,7 @@ const DepartmentDashboard: React.FC = () => {
                       </div>
 
                       <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => setSelectedEvent(ev)}>
+                        <Button variant="outline" onClick={() => { setSelectedEvent(ev); setIsViewDialogOpen(true); }}>
                           <Eye className="w-4 h-4 mr-2" />
                           View Details
                         </Button>
@@ -436,15 +449,15 @@ const DepartmentDashboard: React.FC = () => {
         {isClubsPage && (
           <div className="space-y-6">
             {/* Total Clubs Summary */}
-            <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+            <Card className="p-6 surface-translucent-2 border border-border">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-2xl font-bold text-blue-900">All Registered Clubs</h3>
-                  <p className="text-blue-700 mt-1">Complete overview of all active clubs and their event activity</p>
+                  <h3 className="text-2xl font-bold text-foreground">All Registered Clubs</h3>
+                  <p className="text-muted-foreground mt-1">Complete overview of all active clubs and their event activity</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-4xl font-bold text-blue-600">{clubStats.length}</div>
-                  <p className="text-sm text-blue-500">Total Clubs</p>
+                  <div className="text-4xl font-bold text-primary">{clubStats.length}</div>
+                  <p className="text-sm text-muted-foreground">Total Clubs</p>
                 </div>
               </div>
             </Card>
@@ -479,24 +492,24 @@ const DepartmentDashboard: React.FC = () => {
                     {/* Event Statistics */}
                     <div className="space-y-3">
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-blue-50 rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-blue-600">{club.totalEvents}</div>
-                          <div className="text-xs text-blue-500 font-medium">Total Events</div>
+                        <div className="surface-translucent-2 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-foreground">{club.totalEvents}</div>
+                          <div className="text-xs text-muted-foreground font-emphasis">Total Events</div>
                         </div>
-                        <div className="bg-green-50 rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-green-600">{club.approvedEvents}</div>
-                          <div className="text-xs text-green-500 font-medium">Approved</div>
+                        <div className="surface-translucent-2 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-foreground">{club.approvedEvents}</div>
+                          <div className="text-xs text-muted-foreground font-emphasis">Approved</div>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-amber-50 rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-amber-600">{club.pendingEvents}</div>
-                          <div className="text-xs text-amber-500 font-medium">Pending</div>
+                        <div className="surface-translucent-2 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-foreground">{club.pendingEvents}</div>
+                          <div className="text-xs text-muted-foreground font-emphasis">Pending</div>
                         </div>
-                        <div className="bg-red-50 rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-red-600">{club.rejectedEvents}</div>
-                          <div className="text-xs text-red-500 font-medium">Rejected</div>
+                        <div className="surface-translucent-2 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-foreground">{club.rejectedEvents}</div>
+                          <div className="text-xs text-muted-foreground font-emphasis">Rejected</div>
                         </div>
                       </div>
                     </div>
@@ -525,7 +538,7 @@ const DepartmentDashboard: React.FC = () => {
       </div>
 
       {/* View Dialog */}
-      <Dialog open={!!selectedEvent && !rejectOpen} onOpenChange={() => setSelectedEvent(null)}>
+      <Dialog open={isViewDialogOpen} onOpenChange={(open) => { setIsViewDialogOpen(open); if (!open) setSelectedEvent(null); }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           {selectedEvent && (
             <>
@@ -533,7 +546,7 @@ const DepartmentDashboard: React.FC = () => {
                 <div className="grid grid-cols-1 gap-4">
                   {/* Status Badge - Top Left Position */}
                   <div className="flex items-center justify-start">
-                    <div className="inline-flex items-center px-1 py-1 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-sm">
+                    <div className="inline-flex items-center px-1 py-1 rounded-full surface-translucent-2 border border-border">
                       <StatusBadge status={selectedEvent.status} />
                     </div>
                   </div>
@@ -568,46 +581,46 @@ const DepartmentDashboard: React.FC = () => {
                   {/* Left Column - Event Details */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                      <div className="w-1 h-6 bg-primary rounded-full"></div>
                       <h3 className="text-lg font-semibold text-foreground">Event Details</h3>
                     </div>
                     <div className="space-y-3">
-                      <div className="group flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 rounded-xl border border-blue-100/50 hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
-                        <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                          <Calendar className="w-5 h-5 text-blue-600" />
+                      <div className="group flex items-center gap-4 p-4 surface-translucent-2 rounded-xl border border-border hover:shadow-md transition-all duration-200">
+                        <div className="p-2 surface-translucent-3 rounded-lg transition-colors">
+                          <Calendar className="w-5 h-5 text-foreground" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-blue-700/70 mb-1">Date</p>
+                          <p className="text-sm font-emphasis text-muted-foreground mb-1">Date</p>
                           <p className="text-foreground font-medium">{format(new Date(selectedEvent.date), 'EEEE, MMMM d, yyyy')}</p>
                         </div>
                       </div>
 
-                      <div className="group flex items-center gap-4 p-4 bg-gradient-to-r from-green-50/50 to-emerald-50/50 rounded-xl border border-green-100/50 hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
-                        <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                          <Clock className="w-5 h-5 text-green-600" />
+                      <div className="group flex items-center gap-4 p-4 surface-translucent-2 rounded-xl border border-border hover:shadow-md transition-all duration-200">
+                        <div className="p-2 surface-translucent-3 rounded-lg transition-colors">
+                          <Clock className="w-5 h-5 text-foreground" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-green-700/70 mb-1">Time</p>
+                          <p className="text-sm font-emphasis text-muted-foreground mb-1">Time</p>
                           <p className="text-foreground font-medium">{selectedEvent.time}</p>
                         </div>
                       </div>
 
-                      <div className="group flex items-center gap-4 p-4 bg-gradient-to-r from-red-50/50 to-rose-50/50 rounded-xl border border-red-100/50 hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
-                        <div className="p-2 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
-                          <MapPin className="w-5 h-5 text-red-600" />
+                      <div className="group flex items-center gap-4 p-4 surface-translucent-2 rounded-xl border border-border hover:shadow-md transition-all duration-200">
+                        <div className="p-2 surface-translucent-3 rounded-lg transition-colors">
+                          <MapPin className="w-5 h-5 text-foreground" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-red-700/70 mb-1">Venue</p>
+                          <p className="text-sm font-emphasis text-muted-foreground mb-1">Venue</p>
                           <p className="text-foreground font-medium">{selectedEvent.venue}</p>
                         </div>
                       </div>
 
-                      <div className="group flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50/50 to-violet-50/50 rounded-xl border border-purple-100/50 hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
-                        <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                          <Users className="w-5 h-5 text-purple-600" />
+                      <div className="group flex items-center gap-4 p-4 surface-translucent-2 rounded-xl border border-border hover:shadow-md transition-all duration-200">
+                        <div className="p-2 surface-translucent-3 rounded-lg transition-colors">
+                          <Users className="w-5 h-5 text-foreground" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-purple-700/70 mb-1">Expected Participants</p>
+                          <p className="text-sm font-emphasis text-muted-foreground mb-1">Expected Participants</p>
                           <p className="text-foreground font-medium">{selectedEvent.expectedParticipants}</p>
                         </div>
                       </div>
@@ -617,31 +630,31 @@ const DepartmentDashboard: React.FC = () => {
                   {/* Right Column - Additional Information */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-1 h-6 bg-amber-500 rounded-full"></div>
+                      <div className="w-1 h-6 bg-primary rounded-full"></div>
                       <h3 className="text-lg font-semibold text-foreground">Additional Information</h3>
                     </div>
                     <div className="space-y-4">
                       {selectedEvent.guestName && (
-                        <div className="p-4 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-100/50 hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
+                        <div className="p-4 surface-translucent-2 rounded-xl border border-border hover:shadow-md transition-all duration-200">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 bg-amber-100 rounded-lg">
-                              <Users className="w-4 h-4 text-amber-600" />
+                            <div className="p-2 surface-translucent-3 rounded-lg">
+                              <Users className="w-4 h-4 text-foreground" />
                             </div>
                             <div className="flex-1">
-                              <p className="text-sm font-semibold text-amber-700/70 mb-1">Guest Speaker</p>
+                              <p className="text-sm font-emphasis text-muted-foreground mb-1">Guest Speaker</p>
                               <p className="text-foreground font-medium">{selectedEvent.guestName}</p>
                             </div>
                           </div>
                         </div>
                       )}
 
-                      <div className="p-4 bg-gradient-to-r from-slate-50/50 to-gray-50/50 rounded-xl border border-slate-100/50 hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
+                      <div className="p-4 surface-translucent-2 rounded-xl border border-border hover:shadow-md transition-all duration-200">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-slate-100 rounded-lg">
-                            <Users className="w-4 h-4 text-slate-600" />
+                          <div className="p-2 surface-translucent-3 rounded-lg">
+                            <Users className="w-4 h-4 text-foreground" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-sm font-semibold text-slate-700/70 mb-1">Organizer</p>
+                            <p className="text-sm font-emphasis text-muted-foreground mb-1">Organizer</p>
                             <p className="text-foreground font-medium">{selectedEvent.organizerName || selectedEvent.clubName || 'Unknown Organizer'}</p>
                           </div>
                         </div>
@@ -654,10 +667,10 @@ const DepartmentDashboard: React.FC = () => {
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-1 h-6 bg-green-500 rounded-full"></div>
+                      <div className="w-1 h-6 bg-primary rounded-full"></div>
                       <h3 className="text-lg font-semibold text-foreground">Registered Participants</h3>
                     </div>
-                    <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 rounded-full text-sm font-semibold border border-green-200 shadow-sm">
+                    <div className="inline-flex items-center px-4 py-2 surface-translucent-3 text-foreground rounded-full text-sm font-semibold border border-border">
                       <Users className="w-4 h-4 mr-2" />
                       {selectedEvent.participants.length} registered
                     </div>
@@ -673,7 +686,7 @@ const DepartmentDashboard: React.FC = () => {
                                 <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center text-sm font-bold text-primary border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
                                   {index + 1}
                                 </div>
-                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-background"></div>
+                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-background"></div>
                               </div>
                               <div className="space-y-1">
                                 <p className="font-semibold text-foreground group-hover:text-primary transition-colors">{participant.studentName}</p>
@@ -681,8 +694,8 @@ const DepartmentDashboard: React.FC = () => {
                               </div>
                             </div>
                             <div className="text-right space-y-1">
-                              <div className="inline-flex items-center px-3 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-medium">
-                                <span className="w-1.5 h-1.5 bg-slate-400 rounded-full mr-2"></span>
+                              <div className="inline-flex items-center px-3 py-1 surface-translucent-2 text-foreground rounded-md text-xs font-emphasis">
+                                <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full mr-2"></span>
                                 UID: {participant.studentUid}
                               </div>
                             </div>
@@ -707,7 +720,10 @@ const DepartmentDashboard: React.FC = () => {
       </Dialog>
 
       {/* Reject Dialog */}
-      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
+      <Dialog open={rejectOpen} onOpenChange={(open) => {
+        setRejectOpen(open);
+        if (!open) setSelectedEvent(null);
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Reject Event</DialogTitle>
@@ -726,35 +742,86 @@ export default DepartmentDashboard;
 const StatCard = ({
   label,
   value,
-  color,
+  colorType = "primary",
   icon: Icon,
   onClick,
 }: {
   label: string;
-  value: number;
-  color: string;
+  value: number | string;
+  colorType?: "primary" | "success" | "warning" | "destructive" | "purple";
   icon: LucideIcon;
   onClick?: () => void;
-}) => (
-  <Card className={`p-6 flex items-center gap-4 ${onClick ? 'cursor-pointer hover:shadow-md transition' : ''}`} onClick={onClick}>
-    <div className="p-3 rounded-lg bg-muted">
-      <Icon className={`w-6 h-6 ${color}`} />
-    </div>
+}) => {
+  const colorStyles = {
+    primary: {
+      card: "bg-primary/5 border-primary/20",
+      iconBox: "bg-primary/15 border border-primary/20 text-primary",
+      text: "text-primary",
+    },
+    success: {
+      card: "bg-success/5 border-success/20",
+      iconBox: "bg-success/15 border border-success/20 text-success",
+      text: "text-success",
+    },
+    warning: {
+      card: "bg-warning/5 border-warning/20",
+      iconBox: "bg-warning/15 border border-warning/20 text-warning",
+      text: "text-warning",
+    },
+    destructive: {
+      card: "bg-destructive/5 border-destructive/20",
+      iconBox: "bg-destructive/15 border border-destructive/20 text-destructive",
+      text: "text-destructive",
+    },
+    purple: {
+      card: "bg-purple/5 border-purple/20",
+      iconBox: "bg-purple/15 border border-purple/20 text-purple",
+      text: "text-purple",
+    },
+  };
 
-    <div>
-      <p className={`text-3xl font-bold ${color}`}>{value}</p>
-      <p className="text-muted-foreground mt-1">{label}</p>
-    </div>
-  </Card>
-);
+  const style = colorStyles[colorType] || colorStyles.primary;
+
+  return (
+    <Card 
+      className={`p-5 rounded-xl border transition-all duration-200 hover:shadow-md hover:scale-[1.02] ${style.card} ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
+      <div className="flex items-center gap-4">
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${style.iconBox}`}>
+          <Icon className="w-6 h-6" />
+        </div>
+        <div className="flex flex-col">
+          <span className={`font-mono text-2xl font-semibold ${style.text}`}>
+            {value}
+          </span>
+          <span className="text-sm text-muted-foreground">{label}</span>
+        </div>
+      </div>
+    </Card>
+  );
+};
 
 const StatusBadge = ({ status }: { status: string }) => {
-  const map: Record<string, "secondary" | "success" | "destructive" | "warning"> = {
-    pending_approval: "warning",
-    approved: "success",
-    venue_selected: "success",
-    rejected: "destructive",
+  const styles: Record<string, string> = {
+    pending_approval: 'bg-warning/15 text-warning border border-warning/20',
+    approved: 'bg-success/15 text-success border border-success/20',
+    venue_selected: 'bg-primary/10 text-primary/80 border border-primary/15',
+    rejected: 'bg-destructive/15 text-destructive border border-destructive/20',
+    completed: 'bg-muted text-muted-foreground border border-border',
   };
-  return <Badge variant={map[status] || "secondary"}>{status.replace("_", " ")}</Badge>;
 
+  const labels: Record<string, string> = {
+    pending_approval: 'Pending Approval',
+    approved: 'Approved',
+    venue_selected: 'Upcoming',
+    rejected: 'Rejected',
+    completed: 'Completed',
+  };
+
+  return (
+    <Badge className={`text-xs tracking-wide capitalize ${styles[status] || 'bg-muted text-muted-foreground border border-border'}`}>
+      {labels[status] || status.replace('_', ' ')}
+    </Badge>
+  );
 };

@@ -63,13 +63,13 @@ const NotificationPanel: React.FC = () => {
       <Button
         variant="ghost"
         size="sm"
-        className="text-white bg-white/10 hover:bg-white/30 relative rounded-full w-9 h-9 p-0 flex items-center justify-center border border-white/30"
+        className="relative rounded-full w-9 h-9 p-0 flex items-center justify-center surface-translucent-2 border border-border"
         title="Notifications"
         onClick={() => setIsOpen(!isOpen)}
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center px-1 shadow-lg animate-pulse">
+          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-primary rounded-full text-[10px] font-bold text-primary-foreground flex items-center justify-center px-1 shadow-lg animate-pulse">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -78,13 +78,13 @@ const NotificationPanel: React.FC = () => {
       {/* Notification Panel Dropdown */}
       {isOpen && (
         <div
-          className="absolute right-0 top-full mt-2 w-[380px] max-h-[480px] bg-popover border border-border rounded-xl shadow-2xl z-[100] overflow-hidden"
+          className="absolute right-0 top-full mt-2 w-[380px] max-h-[480px] bg-card border border-border rounded-panel shadow-dialog z-[100] overflow-hidden"
           style={{
             animation: 'notifSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards',
           }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-muted/30">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border surface-translucent-2">
             <h3 className="font-semibold text-sm text-foreground tracking-wide">
               Notifications
             </h3>
@@ -117,11 +117,11 @@ const NotificationPanel: React.FC = () => {
           <div className="overflow-y-auto max-h-[400px] scrollbar-thin">
             {notifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 px-4">
-                <div className="w-14 h-14 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+                <div className="w-14 h-14 rounded-full surface-translucent-3 flex items-center justify-center mb-3">
                   <Bell className="w-6 h-6 text-muted-foreground/50" />
                 </div>
-                <p className="text-sm text-muted-foreground font-medium">No notifications yet</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">
+                <p className="text-sm text-muted-foreground font-emphasis">No notifications yet</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">
                   You'll see updates here when they arrive
                 </p>
               </div>
@@ -135,7 +135,7 @@ const NotificationPanel: React.FC = () => {
                   className={`
                     flex items-start gap-3 px-4 py-3 cursor-pointer transition-all duration-200
                     hover:bg-muted/50 border-b border-border/30 last:border-b-0
-                    ${!notification.isRead ? 'bg-primary/5' : ''}
+                    ${!notification.isRead ? 'surface-translucent-2' : ''}
                   `}
                   style={{
                     animation: `notifItemFadeIn 0.2s ease-out ${index * 0.03}s both`,
@@ -144,7 +144,7 @@ const NotificationPanel: React.FC = () => {
                   {/* Unread dot */}
                   <div className="mt-1.5 flex-shrink-0">
                     {!notification.isRead ? (
-                      <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-sm shadow-primary/40" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-sm" />
                     ) : (
                       <div className="w-2.5 h-2.5 rounded-full bg-transparent" />
                     )}
@@ -155,7 +155,7 @@ const NotificationPanel: React.FC = () => {
                     <p
                       className={`text-sm leading-relaxed ${
                         !notification.isRead
-                          ? 'text-foreground font-medium'
+                          ? 'text-foreground font-emphasis'
                           : 'text-muted-foreground'
                       }`}
                     >

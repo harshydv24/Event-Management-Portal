@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-// import { Sun, Moon } from "lucide-react"; // part of theme button
 import { useAuth } from "@/contexts/AuthContext";
 import { UserRole } from "@/types";
 import ThemeToggle from "@/components/ThemeToggle";
-// import ToggleSwitch from "@/components/ToggleSwitch"; // can be used later on for theme button
+import FloatingDoodles from "@/components/FloatingDoodles";
+import MagneticEyesLogo from "@/components/MorphingLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   GraduationCap,
   Users,
@@ -30,28 +30,23 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 type AuthMode = "login" | "signup";
+type PageState = "roles" | "transitioning" | "form";
 
 const roleConfig = {
   student: {
     icon: GraduationCap,
     title: "Student Portal",
     description: "View and register for your campus events",
-    color: "bg-student text-student-foreground",
-    borderColor: "border-student",
   },
   club: {
     icon: Users,
     title: "Club Portal",
     description: "Manage your club and create events",
-    color: "bg-club text-club-foreground",
-    borderColor: "border-club",
   },
   department: {
     icon: Building2,
     title: "Department Portal",
     description: "Approve and oversee all the campus events",
-    color: "bg-department text-department-foreground",
-    borderColor: "border-department",
   },
 };
 
@@ -60,6 +55,8 @@ const LoginPage: React.FC = () => {
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [isLoading, setIsLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+  const [pageState, setPageState] = useState<PageState>("roles");
+  const [hoveredRoleIndex, setHoveredRoleIndex] = useState<number | null>(null);
 
   // Form state
   const [email, setEmail] = useState("");
@@ -83,13 +80,13 @@ const LoginPage: React.FC = () => {
         const success = await login(email, password, selectedRole);
         if (success) {
           toast({
-            title: "Welcome back!😛",
+            title: "Welcome back!",
             description: "You have successfully logged in.",
           });
           navigate(`/${selectedRole}`);
         } else {
           toast({
-            title: "Login failed🥺",
+            title: "Login failed",
             description: "Kindly re-check your credentials",
             variant: "destructive",
           });
@@ -99,7 +96,7 @@ const LoginPage: React.FC = () => {
           const success = await signup(email, password, name, selectedRole, uid);
           if (success) {
             toast({
-              title: "Account created! 📧",
+              title: "Account created!",
               description: "Please check your email to verify your account.",
             });
             navigate('/verify-email');
@@ -144,61 +141,104 @@ const LoginPage: React.FC = () => {
     setUid("");
   };
 
-  // ========== ROLE SELECTION PAGE UPGRADE ==========
+  // Smooth transition: role selection → login form
+  const handleRoleSelect = useCallback((role: UserRole) => {
+    setPageState("transitioning");
+    setHoveredRoleIndex(null);
+    resetForm();
+
+    setTimeout(() => {
+      setSelectedRole(role);
+      setPageState("form");
+    }, 300);
+  }, []);
+
+  // Smooth transition: login form → role selection
+  const handleBack = useCallback(() => {
+    setPageState("transitioning");
+
+    setTimeout(() => {
+      setSelectedRole(null);
+      setPageState("roles");
+    }, 300);
+  }, []);
+
+  // ========== ROLE SELECTION PAGE ==========
   if (!selectedRole) {
     return (
-      <div className="min-h-screen relative flex items-center justify-center p-6 overflow-hidden">
-        {/* Mixed campus + event background */}
-        <div className="absolute inset-0">
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-90"
-            style={{ backgroundImage: "url('bac-1.jpg')" }}
-          />
-          <div className="absolute inset-0 backdrop-blur-[5px] bg-black/40" />
-        </div>
+      <div className="min-h-screen relative flex items-center justify-center p-6 overflow-hidden bg-background">
+        <div className="absolute inset-0 surface-1" />
+        <FloatingDoodles />
 
-        <div className="relative w-full max-w-5xl text-white animate-fade-in">
-          <h1 className="text-5xl font-semibold tracking-tight mb-5 font-sans">
+        <div
+          className={`relative w-full max-w-5xl text-foreground text-center z-10 ${pageState === "transitioning" ? "animate-scale-out-fade" : ""
+            }`}
+        >
+          {/* Custom Interactive Logo — stagger delay 0ms */}
+          <MagneticEyesLogo
+            className="mx-auto mb-8 opacity-0 animate-stagger-fade-up"
+            style={{ animationDelay: "0ms" }}
+            activeIndex={hoveredRoleIndex}
+          />
+
+          {/* Heading — stagger delay 100ms */}
+          <h1
+            className="text-5xl font-semibold tracking-tight mb-3 opacity-0 animate-stagger-fade-up"
+            style={{ letterSpacing: "-1.056px", animationDelay: "100ms" }}
+          >
             Event Management Portal
           </h1>
-          <p className="text-lg text-gray-200 mb-7 font-serif">
+
+          {/* Subtitle — stagger delay 200ms */}
+          <p
+            className="text-lg font-medium text-muted-foreground mb-10 opacity-0 animate-stagger-fade-up"
+            style={{ animationDelay: "200ms" }}
+          >
             Select your role to continue
           </p>
 
+          {/* Role Cards — stagger delay 350ms, 450ms, 550ms */}
           <div className="grid md:grid-cols-3 gap-6">
             {(
               Object.entries(roleConfig) as [
                 UserRole,
                 typeof roleConfig.student,
               ][]
-            ).map(([role, config]) => {
+            ).map(([role, config], index) => {
               const Icon = config.icon;
               return (
-                <Card
+                <div
                   key={role}
-                  className="cursor-pointer transition-all duration-300 bg-white/10 backdrop-blur-lg border border-white/20 hover:border-white/40 hover:shadow-2xl hover:-translate-y-1 rounded-xl"
-                  onClick={() => {
-                    setSelectedRole(role);
-                    resetForm();
-                  }}
+                  className="opacity-0 animate-stagger-fade-up"
+                  style={{ animationDelay: `${350 + index * 100}ms` }}
                 >
-                  <CardHeader className="text-center pb-4">
-                    <div className="mx-auto w-14 h-14 rounded-full bg-white/80 flex items-center justify-center mb-4 shadow-md">
-                      <Icon className="w-7 h-7 text-gray-800" />
-                    </div>
-                    <CardTitle className="text-xl font-semibold text-white">
-                      {config.title}
-                    </CardTitle>
-                    <CardDescription className="text-gray-200">
-                      {config.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full" variant="secondary">
-                      Continue as {role.charAt(0).toUpperCase() + role.slice(1)}
-                    </Button>
-                  </CardContent>
-                </Card>
+                  <Card
+                    className="h-full cursor-pointer transition-all duration-300
+                      surface-translucent-2 border border-border shadow-elevated
+                      hover:surface-translucent-3 hover:border-foreground/20 hover:scale-[1.01]
+                      rounded-panel"
+                    onClick={() => handleRoleSelect(role)}
+                    onMouseEnter={() => setHoveredRoleIndex(index)}
+                    onMouseLeave={() => setHoveredRoleIndex(null)}
+                  >
+                    <CardHeader className="text-center pb-4">
+                      <div className="mx-auto w-14 h-14 rounded-full surface-translucent-3 border border-border flex items-center justify-center mb-4">
+                        <Icon className="w-7 h-7 text-foreground" />
+                      </div>
+                      <CardTitle className="text-xl font-semibold text-foreground">
+                        {config.title}
+                      </CardTitle>
+                      <CardDescription className="text-muted-foreground">
+                        {config.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button className="w-full" variant="outline">
+                        Continue as {role.charAt(0).toUpperCase() + role.slice(1)}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
               );
             })}
           </div>
@@ -207,41 +247,46 @@ const LoginPage: React.FC = () => {
     );
   }
 
-  // ========== LOGIN / SIGNUP FORM UI UPGRADE ==========
+  // ========== LOGIN / SIGNUP FORM ==========
   const config = roleConfig[selectedRole];
   const Icon = config.icon;
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
-        {/* Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-700/20 via-purple-700/20 to-pink-600/20 backdrop-blur-md" />
+      <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-background">
+        <div className="absolute inset-0 surface-1" />
+        <FloatingDoodles />
 
         <Card
-          className="relative w-full max-w-md rounded-3xl 
-            bg-gradient-to-br from-white/85 via-indigo-50/80 to-purple-50/80
-            backdrop-blur-lg 
-            border border-indigo-300/50 
-            shadow-xl animate-scale-in"
+          className={`relative w-full max-w-md rounded-panel surface-translucent-2 border border-border shadow-dialog z-10 ${pageState === "transitioning"
+            ? "animate-scale-out-fade"
+            : "animate-scale-in-fade"
+            }`}
         >
-          <CardHeader className="text-center space-y-4 relative text-slate-700">
-            <Button
-              variant="ghost"
-              className="absolute left-4 top-4"
-              onClick={() => setSelectedRole(null)}
+          <CardHeader className="text-center space-y-4 relative">
+            {/* Back button — icon-only, matching theme toggle style */}
+            <button
+              onClick={handleBack}
+              className="absolute left-5 top-5 rounded-full w-9 h-9 p-0 flex items-center justify-center
+                surface-translucent-2 border border-standard
+                text-foreground/80 hover:text-foreground
+                hover:surface-translucent-3
+                transition-all duration-200 cursor-pointer"
+              title="Back to role selection"
+              aria-label="Back to role selection"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back  {/* Back button on pages of login/sign up */}
-            </Button>
+              <ArrowLeft className="w-4 h-4" />
+            </button>
 
-            <div className="absolute right-5 top-0">
-              <ThemeToggle /> {/*theme toggle button for changing theme */}
+            <div className="absolute right-5 top-1">
+              <ThemeToggle />
             </div>
 
-            <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-2">
-              <Icon className="w-7 h-7" /> {/* icon on login/sign up box */}
+            <div className="mx-auto w-14 h-14 rounded-full surface-translucent-3 border border-border flex items-center justify-center mb-2">
+              <Icon className="w-7 h-7 text-foreground" /> {/* icon on login/sign up box */}
             </div>
 
-            <CardTitle className="text-2xl font-bold tracking-tight">
+            <CardTitle className="text-2xl font-semibold tracking-tight">
               {config.title}
             </CardTitle>
             <CardDescription>{config.description}</CardDescription>
@@ -288,7 +333,7 @@ const LoginPage: React.FC = () => {
                     <div className="space-y-1.5 relative">
                       <Label>Email</Label>
                       <div className="relative">
-                        <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
+                        <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                         <Input
                           className="pl-10"
                           type="email"
@@ -309,7 +354,7 @@ const LoginPage: React.FC = () => {
                     <div className="space-y-1.5 relative">
                       <Label>Email</Label>
                       <div className="relative">
-                        <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
+                        <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                         <Input
                           className="pl-10"
                           type="email"
@@ -327,7 +372,7 @@ const LoginPage: React.FC = () => {
                 <div className="space-y-1.5 relative">
                   <Label>Password</Label>
                   <div className="relative">
-                    <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
+                    <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       className="pl-10 pr-10"
                       type={showPwd ? "text" : "password"}
@@ -340,7 +385,7 @@ const LoginPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowPwd(!showPwd)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 opacity-70 hover:opacity-100"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                     >
                       {showPwd ? (
                         <EyeOff className="w-4 h-4" />
@@ -355,7 +400,7 @@ const LoginPage: React.FC = () => {
                   <div className="flex justify-end">
                     <button
                       type="button"
-                      className="text-xs text-blue-600 hover:underline"
+                      className="text-xs text-primary hover:text-primary/80 transition-colors cursor-pointer"
                     >
                       Forgot Password?{" "}
                       {/* not working right now, it will be after integration with backend*/}
@@ -364,10 +409,15 @@ const LoginPage: React.FC = () => {
                 )}
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading && (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {isLoading ? (
+                    <span className="flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </span>
+                  ) : (
+                    authMode === "login" ? "Login" : "Create Account"
                   )}
-                  {authMode === "login" ? "Login" : "Create Account"}
                 </Button>
               </form>
             </Tabs>
@@ -376,7 +426,7 @@ const LoginPage: React.FC = () => {
       </div>
 
       {/* footer */}
-      <footer className="bg-muted/30 bg-gradient-to-br from-indigo-700/20 via-purple-700/20 to-pink-600/20 backdrop-blur-md">
+      <footer className="surface-2 border-t border-border">
         <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
           © 2026 University Event Management System. All rights reserved.
         </div>

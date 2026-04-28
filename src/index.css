@@ -2,7 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Hide number input spinners for all browsers */
+/* ───────────────────────────────────────────────
+   Hide number input spinners
+   ─────────────────────────────────────────────── */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -14,7 +16,20 @@ input[type="number"] {
   appearance: textfield;
 }
 
-/* Hide scrollbars completely */
+/* ───────────────────────────────────────────────
+   Hide scrollbars globally
+   ─────────────────────────────────────────────── */
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 .scrollbar-none,
 .scrollbar-hide {
   -ms-overflow-style: none;
@@ -34,88 +49,126 @@ input[type="number"] {
   opacity: 1;
 }
 
-.themeButton {
-  border: 1px solid hsl(220 15% 80%);
-  border-radius: 999px;
-  padding: 0.4rem 0.75rem;
-  background: hsl(231 40% 90%);
-  color: hsl(231 48% 30%);
-  transition: background 0.2s ease, box-shadow 0.2s ease;
-
-}
-
-.themeButton:hover {
-  background: hsl(220 10% 80%);
-  box-shadow: 0 2px 6px hsl(220 10% 60% / 0.15);
-}
-
-.themeButton:active {
-  background: hsl(220 10% 75%);
-}
-
-.toggle {
-  width: 60px;
-  height: 30px;
-  background-color: #ccc;
-  border-radius: 50px;
-  position: relative;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.toggle .knob {
-  width: 24px;
-  height: 24px;
-  background: white;
-  border-radius: 50%;
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  transition: transform 0.3s ease;
-}
-
-/* ON state */
-.toggle.on {
-  background-color: #4ade80;
-}
-
-.toggle.on .knob {
-  transform: translateX(30px);
-}
-
-.backToHome {
-  background-color: hsl(0, 0%, 92%);
-  padding: 12px;
-  border-radius: 10px;
-}
-
-/* 404 error page back button */
-.backToHome:hover {
-  background-color: whitesmoke;
-  transition: 500ms;
-}
+/* ───────────────────────────────────────────────
+   DESIGN SYSTEM TOKENS — Linear-Inspired
+   Dark mode is the DEFAULT (:root)
+   Light mode is applied via .light class
+   ─────────────────────────────────────────────── */
 
 @layer base {
+
+  /* ── DARK THEME (default) ─────────────────── */
   :root {
-    --background: 220 20% 97%;
-    --foreground: 224 50% 15%;
+    /* Background surfaces */
+    --background: 220 14% 4%;
+    /* #08090a — Marketing Black */
+    --foreground: 210 7% 97%;
+    /* #f7f8f8 — Primary Text */
+
+    --card: 220 7% 7%;
+    /* #0f1011 — Panel Dark */
+    --card-foreground: 210 7% 97%;
+    /* #f7f8f8 */
+
+    --popover: 220 5% 10%;
+    /* #191a1b — Level 3 Surface */
+    --popover-foreground: 210 7% 97%;
+    /* #f7f8f8 */
+
+    /* Brand */
+    --primary: 235 65% 55%;
+    /* #5494E9 — Brand Indigo */
+    --primary-foreground: 0 0% 100%;
+    /* #ffffff */
+
+    /* Secondary/surfaces */
+    --secondary: 220 5% 10%;
+    /* #191a1b */
+    --secondary-foreground: 220 14% 85%;
+    /* #d0d6e0 */
+
+    --muted: 220 5% 10%;
+    /* #191a1b */
+    --muted-foreground: 220 5% 57%;
+    /* #8a8f98 — Tertiary Text */
+
+    --accent: 240 100% 72%;
+    /* #7170ff — Accent Violet */
+    --accent-foreground: 0 0% 100%;
+    /* #ffffff */
+
+    --destructive: 0 72% 51%;
+    /* Red for errors */
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --purple: 270 65% 60%;
+    --purple-foreground: 0 0% 100%;
+
+    /* Borders & inputs */
+    --border: 220 8% 16%;
+    /* ~rgba(255,255,255,0.08) on #08090a */
+    --input: 220 8% 16%;
+    --ring: 240 100% 72%;
+    /* #7170ff */
+
+    --radius: 0.5rem;
+    /* 8px — card radius */
+
+    /* Sidebar (dark native) */
+    --sidebar-background: 220 7% 7%;
+    /* #0f1011 */
+    --sidebar-foreground: 210 7% 97%;
+    --sidebar-primary: 235 50% 60%;
+    /* Brand Indigo */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 5% 10%;
+    --sidebar-accent-foreground: 210 7% 97%;
+    --sidebar-border: 220 8% 16%;
+    --sidebar-ring: 240 100% 72%;
+
+    /* Portal role colors — unified to brand indigo */
+    --student: 235 50% 60%;
+    --student-foreground: 0 0% 100%;
+    --club: 235 50% 60%;
+    --club-foreground: 0 0% 100%;
+    --department: 235 50% 60%;
+    --department-foreground: 0 0% 100%;
+  }
+
+  /* ── LIGHT THEME ──────────────────────────── */
+  .light {
+    --background: 210 7% 97%;
+    /* #f7f8f8 */
+    --foreground: 220 14% 4%;
+    /* #08090a */
 
     --card: 0 0% 100%;
-    --card-foreground: 224 50% 15%;
+    /* #ffffff */
+    --card-foreground: 220 14% 4%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 50% 15%;
+    --popover-foreground: 220 14% 4%;
 
-    --primary: 231 48% 30%;
+    --primary: 235 50% 60%;
+    /* #5e6ad2 — same brand */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 20% 94%;
-    --secondary-foreground: 224 50% 15%;
+    --secondary: 220 14% 96%;
+    /* #f3f4f5 */
+    --secondary-foreground: 220 14% 4%;
 
-    --muted: 220 15% 92%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 220 14% 96%;
+    /* #f3f4f5 */
+    --muted-foreground: 220 5% 40%;
+    /* #62666d */
 
-    --accent: 15 80% 60%;
+    --accent: 240 100% 72%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
@@ -127,93 +180,51 @@ input[type="number"] {
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 220 20% 88%;
-    --input: 220 20% 88%;
-    --ring: 231 48% 30%;
+    --purple: 270 65% 60%;
+    --purple-foreground: 0 0% 100%;
 
-    --radius: 0.75rem;
+    --border: 220 14% 85%;
+    /* #d0d6e0 */
+    --input: 220 14% 85%;
+    --ring: 235 50% 60%;
 
-    --sidebar-background: 231 48% 25%;
-    --sidebar-foreground: 220 20% 95%;
-    --sidebar-primary: 15 80% 60%;
+    --radius: 0.5rem;
+
+    --sidebar-background: 220 14% 96%;
+    --sidebar-foreground: 220 14% 4%;
+    --sidebar-primary: 235 50% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 231 40% 35%;
-    --sidebar-accent-foreground: 220 20% 95%;
-    --sidebar-border: 231 40% 35%;
-    --sidebar-ring: 15 80% 60%;
+    --sidebar-accent: 220 14% 92%;
+    --sidebar-accent-foreground: 220 14% 4%;
+    --sidebar-border: 220 14% 85%;
+    --sidebar-ring: 235 50% 60%;
 
-    /* Custom portal colors */
-    --student: 199 89% 48%;
+    --student: 235 50% 60%;
     --student-foreground: 0 0% 100%;
-    --club: 262 83% 58%;
+    --club: 235 50% 60%;
     --club-foreground: 0 0% 100%;
-    --department: 142 70% 45%;
+    --department: 235 50% 60%;
     --department-foreground: 0 0% 100%;
-
   }
 
+  /* ── GLOBAL RESET ─────────────────────────── */
+  * {
+    @apply border-border;
+  }
 
-  /* ye .dark dark mode ke liea hai na? */
-  .dark {
-    --background: 220 20% 92%;
-    --foreground: 224 50% 18%;
-
-    --card: 220 15% 94%;
-    --card-foreground: 224 50% 18%;
-
-    --popover: 220 15% 94%;
-    --popover-foreground: 224 50% 18%;
-
-    --primary: 231 48% 28%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 220 20% 90%;
-    --secondary-foreground: 224 50% 18%;
-
-    --muted: 220 15% 88%;
-    --muted-foreground: 220 10% 42%;
-
-    --accent: 15 80% 58%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 72% 49%;
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 142 70% 42%;
-    --success-foreground: 0 0% 100%;
-
-    --warning: 38 92% 48%;
-    --warning-foreground: 0 0% 100%;
-
-    --border: 220 20% 84%;
-    --input: 220 20% 84%;
-    --ring: 231 48% 28%;
-
-    --radius: 0.75rem;
-
-    /* Sidebar */
-    --sidebar-background: 231 48% 22%;
-    --sidebar-foreground: 220 20% 92%;
-    --sidebar-primary: 15 80% 58%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 231 40% 32%;
-    --sidebar-accent-foreground: 220 20% 92%;
-    --sidebar-border: 231 40% 32%;
-    --sidebar-ring: 15 80% 58%;
-
-    /* Portal colors */
-    --student: 199 89% 46%;
-    --student-foreground: 0 0% 100%;
-
-    --club: 262 83% 56%;
-    --club-foreground: 0 0% 100%;
-
-    --department: 142 70% 42%;
-    --department-foreground: 0 0% 100%;
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Outfit', 'SF Pro Display', -apple-system, system-ui, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-feature-settings: "cv01", "ss03";
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-
+/* ───────────────────────────────────────────────
+   SCROLLING ANIMATION (carousel)
+   ─────────────────────────────────────────────── */
 @keyframes scroll {
   0% {
     transform: translateX(0);
@@ -226,4 +237,172 @@ input[type="number"] {
 
 .animate-scroll {
   animation: scroll 22s linear infinite;
+}
+
+/* ───────────────────────────────────────────────
+   AMBIENT ORB ANIMATION (login page)
+   ─────────────────────────────────────────────── */
+@keyframes orb-drift {
+
+  0%,
+  100% {
+    transform: translate(0%, 0%) scale(1);
+  }
+
+  25% {
+    transform: translate(10%, -15%) scale(1.05);
+  }
+
+  50% {
+    transform: translate(-5%, 10%) scale(0.95);
+  }
+
+  75% {
+    transform: translate(-10%, -5%) scale(1.02);
+  }
+}
+
+@keyframes orb-drift-reverse {
+
+  0%,
+  100% {
+    transform: translate(0%, 0%) scale(1);
+  }
+
+  25% {
+    transform: translate(-8%, 12%) scale(0.97);
+  }
+
+  50% {
+    transform: translate(12%, -8%) scale(1.04);
+  }
+
+  75% {
+    transform: translate(5%, 10%) scale(0.98);
+  }
+}
+
+/* ───────────────────────────────────────────────
+   LINEAR DESIGN UTILITIES
+   ─────────────────────────────────────────────── */
+@layer utilities {
+
+  /* Surface levels (dark mode luminance stepping) */
+  .surface-0 {
+    background-color: #010102;
+  }
+
+  .surface-1 {
+    background-color: #08090a;
+  }
+
+  .surface-2 {
+    background-color: #0f1011;
+  }
+
+  .surface-3 {
+    background-color: #191a1b;
+  }
+
+  .surface-4 {
+    background-color: #28282c;
+  }
+
+  /* Semi-transparent surfaces */
+  .surface-translucent-1 {
+    background-color: rgba(255, 255, 255, 0.02);
+  }
+
+  .surface-translucent-2 {
+    background-color: rgba(255, 255, 255, 0.04);
+  }
+
+  .surface-translucent-3 {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  /* Semi-transparent borders */
+  .border-subtle {
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .border-standard {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  /* Light mode overrides for surfaces */
+  .light .surface-0 {
+    background-color: #f7f8f8;
+  }
+
+  .light .surface-1 {
+    background-color: #f7f8f8;
+  }
+
+  .light .surface-2 {
+    background-color: #ffffff;
+  }
+
+  .light .surface-3 {
+    background-color: #f3f4f5;
+  }
+
+  .light .surface-4 {
+    background-color: #e6e6e6;
+  }
+
+  .light .surface-translucent-1 {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  .light .surface-translucent-2 {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  .light .surface-translucent-3 {
+    background-color: rgba(0, 0, 0, 0.06);
+  }
+
+  .light .border-subtle {
+    border-color: rgba(0, 0, 0, 0.06);
+  }
+
+  .light .border-standard {
+    border-color: rgba(0, 0, 0, 0.10);
+  }
+
+  /* Linear shadow levels */
+  .shadow-subtle {
+    box-shadow: rgba(0, 0, 0, 0.03) 0px 1.2px 0px 0px;
+  }
+
+  .shadow-ring {
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 0px 1px;
+  }
+
+  .shadow-elevated {
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px;
+  }
+
+  .shadow-dialog {
+    box-shadow:
+      rgba(0, 0, 0, 0) 0px 8px 2px,
+      rgba(0, 0, 0, 0.01) 0px 5px 2px,
+      rgba(0, 0, 0, 0.04) 0px 3px 2px,
+      rgba(0, 0, 0, 0.07) 0px 1px 1px,
+      rgba(0, 0, 0, 0.08) 0px 0px 1px;
+  }
+
+  .shadow-inset {
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 12px 0px inset;
+  }
+
+  /* Typography weights (Linear signature) */
+  .font-w510 {
+    font-weight: 500;
+  }
+
+  .font-w590 {
+    font-weight: 600;
+  }
 }

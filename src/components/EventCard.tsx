@@ -3,7 +3,7 @@ import { Event } from '@/types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, Users, Clock, Eye } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, Eye, Check } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface EventCardProps {
@@ -14,6 +14,22 @@ interface EventCardProps {
   variant?: 'student' | 'club' | 'department';
   isRegistered?: boolean;
 }
+
+const statusStyles: Record<string, string> = {
+  pending_approval: 'bg-muted text-muted-foreground border border-border',
+  approved: 'bg-success/15 text-success border border-success/20',
+  rejected: 'bg-destructive/15 text-destructive border border-destructive/20',
+  venue_selected: 'bg-primary/10 text-primary/80 border border-primary/15',
+  completed: 'bg-muted text-muted-foreground border border-border',
+};
+
+const statusLabels: Record<string, string> = {
+  venue_selected: 'Upcoming',
+  completed: 'Completed',
+  pending_approval: 'Pending Approval',
+  approved: 'Approved',
+  rejected: 'Rejected',
+};
 
 const EventCard: React.FC<EventCardProps> = ({
   event,
@@ -28,35 +44,15 @@ const EventCard: React.FC<EventCardProps> = ({
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-lg font-semibold">{event.name}</h3>
+            <h3 className="text-lg font-semibold text-foreground">{event.name}</h3>
             {isRegistered && (
-              <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-                ✓ Registered
+              <Badge className="bg-primary/15 text-primary border-primary/20">
+                <Check className="w-3 h-3 mr-1" /> Registered
               </Badge>
             )}
-            {event.status === 'completed' && (
-              <Badge className="bg-gray-100 text-gray-800">
-                Completed
-              </Badge>
-            )}
-            {event.status === 'venue_selected' && !isRegistered && (
-              <Badge className="bg-blue-100 text-blue-800">
-                Upcoming
-              </Badge>
-            )}
-            {event.status === 'pending_approval' && (
-              <Badge className="bg-yellow-100 text-yellow-800">
-                Pending Approval
-              </Badge>
-            )}
-            {event.status === 'approved' && (
-              <Badge className="bg-green-100 text-green-800">
-                Approved
-              </Badge>
-            )}
-            {event.status === 'rejected' && (
-              <Badge className="bg-red-100 text-red-800">
-                Rejected
+            {!isRegistered && event.status && statusLabels[event.status] && (
+              <Badge className={statusStyles[event.status] || 'bg-muted text-muted-foreground'}>
+                {statusLabels[event.status]}
               </Badge>
             )}
           </div>
@@ -91,7 +87,7 @@ const EventCard: React.FC<EventCardProps> = ({
       {showActions && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">{event.organizerName || event.clubName}</span>
+            <span className="font-emphasis text-foreground">{event.organizerName || event.clubName}</span>
           </div>
 
           <div className="flex gap-2">
@@ -106,7 +102,6 @@ const EventCard: React.FC<EventCardProps> = ({
             {variant === 'student' && event.status === 'venue_selected' && !isRegistered && (
               <Button
                 onClick={onRegister}
-                className="shadow-sm"
               >
                 Register
               </Button>

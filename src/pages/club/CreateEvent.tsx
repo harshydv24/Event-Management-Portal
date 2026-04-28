@@ -267,31 +267,31 @@ const CreateEvent: React.FC = () => {
               <TabsList className="grid grid-cols-3 w-full gap-1.5 select-none pointer-events-none">
                 <TabsTrigger
                   value="details"
-                  className={step === "details" ? "bg-indigo-600 text-white" : ""}
+                  className={step === "details" ? "bg-primary text-primary-foreground" : ""}
                 >
                   <div className="flex items-center gap-1">
                     Details
-                    {sectionValidation.details === 'invalid' && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                    {sectionValidation.details === 'invalid' && <AlertTriangle className="w-4 h-4 text-destructive" />}
                   </div>
                 </TabsTrigger>
 
                 <TabsTrigger
                   value="documents"
-                  className={step === "documents" ? "bg-indigo-600 text-white" : ""}
+                  className={step === "documents" ? "bg-primary text-primary-foreground" : ""}
                 >
                   <div className="flex items-center gap-1">
                     Documents
-                    {sectionValidation.documents === 'invalid' && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                    {sectionValidation.documents === 'invalid' && <AlertTriangle className="w-4 h-4 text-destructive" />}
                   </div>
                 </TabsTrigger>
 
                 <TabsTrigger
                   value="review"
-                  className={step === "review" ? "bg-indigo-600 text-white" : ""}
+                  className={step === "review" ? "bg-primary text-primary-foreground" : ""}
                 >
                   <div className="flex items-center gap-1">
                     Review
-                    {sectionValidation.review === 'invalid' && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                    {sectionValidation.review === 'invalid' && <AlertTriangle className="w-4 h-4 text-destructive" />}
                   </div>
                 </TabsTrigger>
               </TabsList>
@@ -593,10 +593,15 @@ const CreateEvent: React.FC = () => {
               Cancel
             </Button>
             <Button onClick={handleFinalSubmit} disabled={isSubmitting}>
-              {isSubmitting && (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              {isSubmitting ? (
+                <span className="flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: "300ms" }} />
+                </span>
+              ) : (
+                "Confirm & Submit"
               )}
-              Confirm & Submit
             </Button>
           </DialogFooter>
         </DialogContent>

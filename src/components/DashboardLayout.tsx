@@ -12,8 +12,6 @@ import {
   GraduationCap,
   Users,
   Building2,
-  Sun,
-  Moon
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -24,7 +22,6 @@ const roleConfig = {
   student: {
     icon: GraduationCap,
     title: 'Student Portal',
-    color: 'bg-student',
     navItems: [
       { path: '/student', label: 'Dashboard', icon: LayoutDashboard },
       { path: '/student/events', label: 'All Events', icon: Calendar },
@@ -33,17 +30,14 @@ const roleConfig = {
   club: {
     icon: Users,
     title: 'Club Portal',
-    color: 'bg-club',
     navItems: [
       { path: '/club', label: 'Dashboard', icon: LayoutDashboard },
-      { path: '/club/create-event', label: 'Create Event', icon: Plus },
       { path: '/club/events', label: 'My Events', icon: Calendar },
     ],
   },
   department: {
     icon: Building2,
     title: 'Department Portal',
-    color: 'bg-club',
     navItems: [
       { path: '/department', label: 'Dashboard', icon: LayoutDashboard },
       { path: '/department/clubs', label: 'Registered Clubs', icon: Users },
@@ -63,124 +57,113 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="bg-primary/90 text-primary-foreground shadow-sm sticky top-0 z-50 backdrop-blur-md">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="surface-2 sticky top-0 z-50 border-b border-border relative">
+        <div className="absolute inset-0 bg-primary/10 pointer-events-none" />
+        <div className="w-full px-4 py-3 flex items-center justify-between relative">
+          {/* Left — Brand */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full surface-translucent-3 border border-border flex items-center justify-center text-foreground">
               <Icon className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold tracking-tight">
+              <h1 className="text-lg font-semibold tracking-tight text-foreground">
                 {config.title}
               </h1>
-              <p className="text-xs opacity-90 tracking-wide">
-                Welcome, {user.name} 👋
+              <p className="text-xs text-muted-foreground tracking-wide">
+                Welcome, {user.name}
               </p>
             </div>
           </div>
 
+          {/* Center — Navigation Tabs */}
+          <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1">
+            {config.navItems.map(item => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link key={item.path} to={item.path}>
+                  <span
+                    className={`
+                      relative text-sm px-3 py-1.5 rounded-md transition-all duration-200 tracking-wide whitespace-nowrap font-emphasis
+                      ${isActive
+                        ? 'text-foreground surface-translucent-3'
+                        : 'text-muted-foreground hover:text-foreground hover:surface-translucent-2'}
+                    `}
+                  >
+                    {item.label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Right — Actions */}
           <div className="flex items-center gap-2">
             {/* Notification Bell */}
             <NotificationPanel />
 
             <ThemeToggle />
 
-            <Button
-              variant="ghost"
-              className="text-white bg-white/10 hover:bg-white/30 w-24 h-9 p-0 border border-white/30"
+            {/* Logout — icon-only, matching theme toggle style */}
+            <button
               onClick={logout}
+              className="rounded-full w-9 h-9 p-0 flex items-center justify-center
+                surface-translucent-2 border border-standard
+                text-foreground/80 hover:text-foreground
+                hover:surface-translucent-3
+                transition-all duration-200 cursor-pointer"
+              title="Logout"
+              aria-label="Logout"
             >
-              <LogOut className="w-0 h-0 mr-0" />
-              Logout
-            </Button>
+              <LogOut className="w-4 h-4" />
+            </button>
+
+            {/* Create Event — Club only */}
+            {user.role === 'club' && (
+              <>
+                {/* Vertical separator */}
+                <div className="w-px h-6 bg-border mx-1" />
+
+                <Button size="sm" className="font-emphasis tracking-wide" asChild>
+                  <Link to="/club/create-event">
+                    Create Event
+                    <Plus className="w-3.5 h-3.5 mr-1" />
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
-      </header>
 
-      {/* Breadcrumb Layer */}
-      <div className="border-b bg-muted/30 backdrop-blur">
-        <div className="container mx-auto px-4 py-2">
-          <div className="text-xs text-muted-foreground tracking-wide">
-            {config.title} › {location.pathname.split('/')[1] || 'Dashboard'}
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Tabs */}
-      <nav className="border-b bg-background">
-        <div className="container mx-auto px-4 flex items-center justify-between gap-3 py-2">
-
-          {/* Tabs */}
-          <div className="flex gap-4 overflow-x-auto scrollbar-none relative">
-            {config.navItems.filter(item => item.label !== 'Create Event').map(item => {
+        {/* Mobile Navigation Tabs — shown below header on small screens */}
+        <div className="md:hidden border-t border-border">
+          <div className="w-full px-4 py-2 flex items-center gap-1 overflow-x-auto scrollbar-none">
+            {config.navItems.map(item => {
               const isActive = location.pathname === item.path;
               return (
                 <Link key={item.path} to={item.path}>
                   <span
                     className={`
-                text-sm cursor-pointer pb-2 transition tracking-wide whitespace-nowrap
-                ${isActive ? 'text-primary font-bold' : 'text-muted-foreground hover:text-foreground'}
-              `}
+                      text-sm px-3 py-1.5 rounded-md transition-all duration-200 tracking-wide whitespace-nowrap font-emphasis
+                      ${isActive
+                        ? 'text-foreground surface-translucent-3'
+                        : 'text-muted-foreground hover:text-foreground hover:surface-translucent-2'}
+                    `}
                   >
                     {item.label}
                   </span>
-                  {isActive && (
-                    <div className="h-[2px] rounded-full bg-primary mt-1"></div>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Actions */}
-          {user.role === 'club' && (
-            <Button size="sm" className="font-medium tracking-wide" asChild>
-              <Link to="/club/create-event">
-                <Plus className="w-3 h-3 mr-0" />
-                Create Event
-              </Link>
-            </Button>
-          )}
-        </div>
-      </nav>
-
-
-
-
-      {/* old */}
-      {/* Navigation
-      <nav className="bg-card border-b border-border">
-        <div className="container mx-auto px-4">
-          <div className="flex gap-1 overflow-x-auto">
-            {config.navItems.map((item) => {
-              const NavIcon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <Link key={item.path} to={item.path}>
-                  <Button
-                    variant={isActive ? 'default' : 'ghost'}
-                    className={`rounded-none border-b-2 ${
-                      isActive 
-                        ? 'border-primary' 
-                        : 'border-transparent hover:border-muted-foreground/30'
-                    }`}
-                  >
-                    <NavIcon className="w-4 h-4 mr-2" />
-                    {item.label}
-                  </Button>
                 </Link>
               );
             })}
           </div>
         </div>
-      </nav> */}
+      </header>
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 flex-grow">
         {children}
       </main>
 
-      <footer className="border-t bg-muted/30">
+      <footer className="border-t border-border surface-2">
         <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
           © {new Date().getFullYear()} University Event Management System. All rights reserved.
         </div>

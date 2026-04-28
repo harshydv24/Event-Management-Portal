@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Clock, Users, User, Ticket, Eye, Plus, Minus } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, User, Ticket, Eye, Plus, Minus, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { Event, VENUES, EventParticipant } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -210,44 +210,43 @@ const StudentDashboard: React.FC = () => {
       <div className="space-y-8 animate-fade-in">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="stat-card p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                <Ticket className="w-5 h-5 text-green-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-2xl font-bold text-black">{registeredEvents.length}</p>
-                <p className="text-sm text-muted-foreground font-medium">Registered Events</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="stat-card p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-2xl font-bold text-black">{upcomingEvents.length}</p>
-                <p className="text-sm text-muted-foreground font-medium">Upcoming Events</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="stat-card p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                <Users className="w-5 h-5 text-purple-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-2xl font-bold text-black">{events.length}</p>
-                <p className="text-sm text-muted-foreground font-medium">Total Events</p>
-              </div>
-            </div>
-          </Card>
+          {[
+            { label: "Registered Events", value: registeredEvents.length, icon: Ticket, colorType: "success" as const },
+            { label: "Upcoming Events", value: upcomingEvents.length, icon: Calendar, colorType: "warning" as const },
+            { label: "Total Events", value: events.length, icon: Users, colorType: "primary" as const }
+          ].map((stat, i) => {
+            const colorStyles = {
+              primary: { card: "bg-primary/5 border-primary/20", iconBox: "bg-primary/15 border border-primary/20 text-primary", text: "text-primary" },
+              success: { card: "bg-success/5 border-success/20", iconBox: "bg-success/15 border border-success/20 text-success", text: "text-success" },
+              warning: { card: "bg-warning/5 border-warning/20", iconBox: "bg-warning/15 border border-warning/20 text-warning", text: "text-warning" },
+              destructive: { card: "bg-destructive/5 border-destructive/20", iconBox: "bg-destructive/15 border border-destructive/20 text-destructive", text: "text-destructive" },
+              purple: { card: "bg-purple/5 border-purple/20", iconBox: "bg-purple/15 border border-purple/20 text-purple", text: "text-purple" },
+            };
+            const style = colorStyles[stat.colorType as keyof typeof colorStyles];
+            return (
+              <Card
+                key={i}
+                className={`p-5 rounded-xl border transition duration-200 hover:shadow-md hover:scale-[1.02] ${style.card}`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${style.iconBox}`}>
+                    <stat.icon className="w-6 h-6" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className={`font-mono text-2xl font-semibold ${style.text}`}>
+                      {stat.value}
+                    </span>
+                    <span className="text-sm text-muted-foreground">{stat.label}</span>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Registered Events */}
         <section>
-          <h2 className="text-2xl font-semibold text-slate-800 mb-4">My Registered Events</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-4">My Registered Events</h2>
           {registeredEvents.length > 0 ? (
             <div className="space-y-4">
               {registeredEvents.map(event => (
@@ -256,8 +255,8 @@ const StudentDashboard: React.FC = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="text-lg font-semibold">{event.name}</h3>
-                        <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-                          ✓ Registered
+                        <Badge className="bg-primary/15 text-primary border-primary/20">
+                          <Check className="w-3 h-3 mr-1" /> Registered
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">{event.clubName}</p>
@@ -312,7 +311,7 @@ const StudentDashboard: React.FC = () => {
 
         {/* Upcoming Events */}
         <section>
-          <h2 className="text-2xl font-semibold text-slate-800 mb-4">Upcoming Events</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-4">Upcoming Events</h2>
           {upcomingEvents.length > 0 ? (
             <div className="space-y-4">
               {upcomingEvents.map(event => (
@@ -331,8 +330,8 @@ const StudentDashboard: React.FC = () => {
             </div>
           ) : (
             <Card className="p-12 text-center border-dashed">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-blue-100 flex items-center justify-center">
-                <Calendar className="w-10 h-10 text-blue-400" />
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full surface-translucent-3 flex items-center justify-center">
+                <Calendar className="w-10 h-10 text-muted-foreground" />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-2">No Upcoming Events</h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
@@ -397,41 +396,41 @@ const StudentDashboard: React.FC = () => {
                   {/* Left Column - Event Details */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                      <div className="w-1 h-6 bg-primary rounded-full"></div>
                       <h3 className="text-lg font-semibold text-foreground">Event Details</h3>
                     </div>
                     <div className="space-y-3">
-                      <div className="group flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 rounded-xl border border-blue-100/50 hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
-                        <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                          <Calendar className="w-5 h-5 text-blue-600" />
+                      <div className="group flex items-center gap-4 p-4 surface-translucent-2 rounded-xl border border-border hover:shadow-md transition-all duration-200">
+                        <div className="p-2 surface-translucent-3 rounded-lg transition-colors">
+                          <Calendar className="w-5 h-5 text-foreground" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-blue-700/70 mb-1">Date</p>
-                          <p className="text-foreground font-medium">{format(new Date(selectedEvent.date), 'EEEE, MMMM d, yyyy')}</p>
+                          <p className="text-sm font-emphasis text-muted-foreground mb-1">Date</p>
+                          <p className="text-foreground font-emphasis">{format(new Date(selectedEvent.date), 'EEEE, MMMM d, yyyy')}</p>
                         </div>
                       </div>
 
                       {selectedEvent.time && (
-                        <div className="group flex items-center gap-4 p-4 bg-gradient-to-r from-green-50/50 to-emerald-50/50 rounded-xl border border-green-100/50 hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
-                          <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                            <Clock className="w-5 h-5 text-green-600" />
+                        <div className="group flex items-center gap-4 p-4 surface-translucent-2 rounded-xl border border-border hover:shadow-md transition-all duration-200">
+                          <div className="p-2 surface-translucent-3 rounded-lg transition-colors">
+                            <Clock className="w-5 h-5 text-foreground" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-green-700/70 mb-1">Time</p>
-                            <p className="text-foreground font-medium">{selectedEvent.time}</p>
+                            <p className="text-sm font-emphasis text-muted-foreground mb-1">Time</p>
+                            <p className="text-foreground font-emphasis">{selectedEvent.time}</p>
                           </div>
                         </div>
                       )}
 
                       {selectedEvent.venue && (
-                        <div className="group flex items-center gap-4 p-4 bg-gradient-to-r from-red-50/50 to-rose-50/50 rounded-xl border border-red-100/50 hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
-                          <div className="p-2 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
-                            <MapPin className="w-5 h-5 text-red-600" />
+                        <div className="group flex items-center gap-4 p-4 surface-translucent-2 rounded-xl border border-border hover:shadow-md transition-all duration-200">
+                          <div className="p-2 surface-translucent-3 rounded-lg transition-colors">
+                            <MapPin className="w-5 h-5 text-foreground" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-red-700/70 mb-1">Venue</p>
-                            <p className="text-foreground font-medium">{selectedEvent.venue}</p>
-                            <p className="text-xs text-red-600/70 mt-1">Capacity: {(() => {
+                            <p className="text-sm font-emphasis text-muted-foreground mb-1">Venue</p>
+                            <p className="text-foreground font-emphasis">{selectedEvent.venue}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Capacity: {(() => {
                               const venue = VENUES.find(v => v.name === selectedEvent.venue);
                               return venue ? venue.capacity : 'N/A';
                             })()} seats</p>
@@ -439,14 +438,14 @@ const StudentDashboard: React.FC = () => {
                         </div>
                       )}
 
-                      <div className="group flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50/50 to-violet-50/50 rounded-xl border border-purple-100/50 hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
-                        <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                          <Users className="w-5 h-5 text-purple-600" />
+                      <div className="group flex items-center gap-4 p-4 surface-translucent-2 rounded-xl border border-border hover:shadow-md transition-all duration-200">
+                        <div className="p-2 surface-translucent-3 rounded-lg transition-colors">
+                          <Users className="w-5 h-5 text-foreground" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-purple-700/70 mb-1">Participants</p>
-                          <p className="text-foreground font-medium">{selectedEvent.participants.length} / {selectedEvent.expectedParticipants} registered</p>
-                          <p className="text-xs text-purple-600/70 mt-1">
+                          <p className="text-sm font-emphasis text-muted-foreground mb-1">Participants</p>
+                          <p className="text-foreground font-emphasis">{selectedEvent.participants.length} / {selectedEvent.expectedParticipants} registered</p>
+                          <p className="text-xs text-muted-foreground mt-1">
                             {selectedEvent.expectedParticipants - selectedEvent.participants.length > 0
                               ? `${selectedEvent.expectedParticipants - selectedEvent.participants.length} seats remaining`
                               : 'Event full'
@@ -460,32 +459,32 @@ const StudentDashboard: React.FC = () => {
                   {/* Right Column - Additional Information */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-1 h-6 bg-amber-500 rounded-full"></div>
+                      <div className="w-1 h-6 bg-primary rounded-full"></div>
                       <h3 className="text-lg font-semibold text-foreground">Additional Information</h3>
                     </div>
                     <div className="space-y-4">
                       {selectedEvent.guestName && (
-                        <div className="p-4 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-100/50 hover:shadow-md transition-all duration-200">
+                        <div className="p-4 surface-translucent-2 rounded-xl border border-border hover:shadow-md transition-all duration-200">
                           <div className="flex items-center gap-3">
-                            <div className="p-3 bg-amber-100 rounded-lg">
-                              <User className="w-5 h-5 text-amber-600" />
+                            <div className="p-3 surface-translucent-3 rounded-lg">
+                              <User className="w-5 h-5 text-foreground" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-amber-700/70 mb-1">Guest Speaker</p>
+                              <p className="text-sm font-emphasis text-muted-foreground mb-1">Guest Speaker</p>
                               <p className="text-foreground font-semibold text-lg">{selectedEvent.guestName}</p>
                             </div>
                           </div>
                         </div>
                       )}
 
-                      <div className="p-4 bg-gradient-to-r from-slate-50/50 to-gray-50/50 rounded-xl border border-slate-100/50 hover:shadow-md transition-all duration-200">
+                      <div className="p-4 surface-translucent-2 rounded-xl border border-border hover:shadow-md transition-all duration-200">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-slate-100 rounded-lg">
-                            <Users className="w-4 h-4 text-slate-600" />
+                          <div className="p-2 surface-translucent-3 rounded-lg">
+                            <Users className="w-4 h-4 text-foreground" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-slate-700/70 mb-1">Organizer</p>
-                            <p className="text-foreground font-medium">{selectedEvent.organizerName || selectedEvent.clubName}</p>
+                            <p className="text-sm font-emphasis text-muted-foreground mb-1">Organizer</p>
+                            <p className="text-foreground font-emphasis">{selectedEvent.organizerName || selectedEvent.clubName}</p>
                           </div>
                         </div>
                       </div>
@@ -628,7 +627,7 @@ const StudentDashboard: React.FC = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => removeMember(index)}
-                            className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                            className="flex items-center gap-1 text-destructive hover:text-destructive/80"
                           >
                             <Minus className="w-4 h-4" />
                             Remove

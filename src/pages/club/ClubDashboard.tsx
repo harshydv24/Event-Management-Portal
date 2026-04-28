@@ -14,7 +14,8 @@ import {
   ChevronRight,
   ChevronLeft,
   Clock,
-  Pencil
+  Pencil,
+  MapPin
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Club } from '@/types';
@@ -170,21 +171,21 @@ const ClubDashboard: React.FC = () => {
     <DashboardLayout>
       <div className="animate-fade-in">
         {/* Soft Background */}
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,white,rgba(240,240,240,0.6))]" />
+        <div className="absolute inset-0 -z-10" />
 
         {/* Header */}
         <div className="flex flex-col space-y-1 mb-6">
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
             {club.name} — CUSB
           </h1>
-          <span className="text-sm text-slate-600 tracking-wide">
+          <span className="text-sm text-muted-foreground tracking-wide">
             University Club Portal
           </span>
         </div>
 
         {/* Overview Section */}
         <section className="space-y-4 mb-8">
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-800">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             Overview
           </h2>
 
@@ -193,73 +194,75 @@ const ClubDashboard: React.FC = () => {
               {
                 label: "Total Events",
                 value: clubEvents.length,
-                subtitle: "+2 this semester",
-                icon: Calendar
+                icon: Calendar,
+                colorType: "primary" as const
               },
               {
                 label: "Pending Submissions",
                 value: pendingEvents.length,
-                subtitle: "Awaiting department",
-                icon: Clock
+                icon: Clock,
+                colorType: "warning" as const
               },
               {
                 label: "Completed Events",
                 value: completedEvents.length,
-                subtitle: "Well executed",
-                icon: Trophy
+                icon: Trophy,
+                colorType: "success" as const
               },
               {
                 label: "Total Participants",
                 value: totalParticipants,
-                subtitle: "Avg: ~70/event",
-                icon: TrendingUp
+                icon: TrendingUp,
+                colorType: "purple" as const
               }
-            ].map((stat, i) => (
-              <Card
-                key={i}
-                className="
-                p-5 rounded-xl border border-slate-200 bg-white 
-                shadow-[0_4px_10px_rgba(0,0,0,0.04)]
-                hover:shadow-[0_6px_14px_rgba(0,0,0,0.08)]
-                transition duration-200
-              "
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
-                    <stat.icon className="w-6 h-6 text-slate-700" />
+            ].map((stat, i) => {
+              const colorStyles = {
+                primary: { card: "bg-primary/5 border-primary/20", iconBox: "bg-primary/15 border border-primary/20 text-primary", text: "text-primary" },
+                success: { card: "bg-success/5 border-success/20", iconBox: "bg-success/15 border border-success/20 text-success", text: "text-success" },
+                warning: { card: "bg-warning/5 border-warning/20", iconBox: "bg-warning/15 border border-warning/20 text-warning", text: "text-warning" },
+                destructive: { card: "bg-destructive/5 border-destructive/20", iconBox: "bg-destructive/15 border border-destructive/20 text-destructive", text: "text-destructive" },
+                purple: { card: "bg-purple/5 border-purple/20", iconBox: "bg-purple/15 border border-purple/20 text-purple", text: "text-purple" },
+              };
+              const style = colorStyles[stat.colorType as keyof typeof colorStyles];
+              return (
+                <Card
+                  key={i}
+                  className={`p-5 rounded-xl border transition duration-200 hover:shadow-md hover:scale-[1.02] ${style.card}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${style.iconBox}`}>
+                      <stat.icon className="w-6 h-6" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className={`font-mono text-2xl font-semibold ${style.text}`}>
+                        {stat.value}
+                      </span>
+                      <span className="text-sm text-muted-foreground">{stat.label}</span>
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="font-mono text-2xl font-semibold text-slate-900">
-                      {stat.value}
-                    </span>
-                    <span className="text-sm text-slate-600">{stat.label}</span>
-                    <span className="text-xs text-amber-600 tracking-wide mt-1">
-                      {stat.subtitle}
-                    </span>
-                  </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         </section>
 
         {/* People Section */}
-        <section className="space-y-4 mb-10">
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-800">
+        <section className="space-y-1 mb-10">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             People
           </h2>
-          <p className="text-s text-slate-500 tracking-wide">
+          <p className="text-sm text-muted-foreground tracking-wide">
             Leadership & core management team
           </p>
 
-          <div className="rounded-xl bg-white border border-slate-200 p-6 space-y-8 shadow-sm">
+          <div className="rounded-xl border border-border p-6 space-y-8">
 
             {/* Leadership Header */}
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-700 tracking-wide uppercase">
+              <h3 className="text-sm font-semibold text-muted-foreground tracking-wide uppercase">
                 Leadership
               </h3>
-              <div className="flex items-center gap-1 text-s text-slate-500">
+              <div className="flex items-center gap-1 text-s text-muted-foreground">
                 <Users className="w-4 h-4" />
                 <span>2</span>
               </div>
@@ -279,36 +282,30 @@ const ClubDashboard: React.FC = () => {
                   ? "Faculty Advisor"
                   : "Club President";
                 const roleColor = leader.isFacultyAdvisor
-                  ? "border-amber-500"
-                  : "border-blue-500";
+                  ? "border-primary"
+                  : "border-primary/60";
 
                 return (
                   <Card
                     key={index}
-                    className="
-                    flex items-center justify-between gap-4 px-5 py-4
-                    rounded-xl bg-white border border-slate-200
-                    shadow-[0_4px_10px_rgba(0,0,0,0.04)]
-                    hover:shadow-[0_6px_14px_rgba(0,0,0,0.05)]
-                    transition
-                  "
+                    className="flex items-center justify-between gap-4 px-5 py-4 rounded-xl border border-border transition hover:shadow-md"
                   >
                     <div className="flex items-center gap-4">
                       <div className="relative">
                         <div className={`absolute inset-0 rounded-full border-[3px] ${roleColor}`}></div>
-                        <div className="w-14 h-14 rounded-full bg-slate-800 text-white flex items-center justify-center font-medium shadow-sm">
+                        <div className="w-14 h-14 rounded-full surface-translucent-3 text-foreground flex items-center justify-center font-emphasis shadow-sm">
                           {initials}
                         </div>
                       </div>
 
                       <div className="flex flex-col">
-                        <span className="font-semibold tracking-tight text-slate-900">
+                        <span className="font-semibold tracking-tight text-foreground">
                           {leader.name}
                         </span>
-                        <span className="text-xs text-slate-600">{role}</span>
+                        <span className="text-xs text-muted-foreground">{role}</span>
                         <Badge
                           variant="outline"
-                          className="text-[10px] tracking-wide px-2 py-[1px] mt-1 border-slate-300 w-fit"
+                          className="text-[10px] tracking-wide px-2 py-[1px] mt-1 border-border w-fit"
                         >
                           {leader.designation}
                         </Badge>
@@ -328,7 +325,7 @@ const ClubDashboard: React.FC = () => {
           {/* Core Team Scrolling */}
           <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold tracking-tight text-slate-800">Core Team</h2>
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">Core Team</h2>
               <Dialog open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm">
@@ -408,12 +405,12 @@ const ClubDashboard: React.FC = () => {
                 {/* Left Button - Fade in/out on hover */}
                 <button
                   onClick={scrollLeft}
-                  className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-md shadow-lg rounded-full p-2.5 hover:bg-white hover:scale-110 transition-all duration-300 ${isCarouselHovered
+                  className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-card/90 backdrop-blur-md shadow-lg rounded-full p-2.5 hover:bg-card hover:scale-110 transition-all duration-300 ${isCarouselHovered
                     ? 'opacity-100 translate-x-0'
                     : 'opacity-0 -translate-x-2 pointer-events-none'
                     }`}
                 >
-                  <ChevronLeft className="w-5 h-5 text-slate-700" />
+                  <ChevronLeft className="w-5 h-5 text-foreground" />
                 </button>
 
                 <div
@@ -443,23 +440,23 @@ const ClubDashboard: React.FC = () => {
                         <Card
                           key={i}
                           className="inline-flex flex-col justify-between min-w-[220px] max-w-[220px]
-                            backdrop-blur-sm bg-white/70 border rounded-xl px-4 py-5 shadow
+                            backdrop-blur-sm border rounded-xl px-4 py-5
                             hover:shadow-xl hover:-translate-y-[2px] hover:scale-[1.03]
                             transition duration-200 cursor-pointer flex-shrink-0"
                         >
                           <div className="flex items-center justify-center mb-2">
-                            <div className="w-12 h-12 bg-indigo-600 text-white flex items-center justify-center rounded-full text-sm font-medium shadow">
+                            <div className="w-12 h-12 bg-primary text-primary-foreground flex items-center justify-center rounded-full text-sm font-emphasis shadow">
                               {initials}
                             </div>
                           </div>
 
                           <div className="text-center space-y-1">
-                            <div className="font-medium tracking-tight text-[15px]">{m.name}</div>
+                            <div className="font-emphasis tracking-tight text-[15px]">{m.name}</div>
                             <Badge variant="outline" className="text-[10px] tracking-wide px-2 py-[1px]">
                               {m.designation}
                             </Badge>
                             {(m.branch || m.year) && (
-                              <div className="text-[11px] text-slate-600 mt-1 font-medium">
+                              <div className="text-[11px] text-muted-foreground mt-1 font-emphasis">
                                 {m.branch && m.year ? `${m.branch} ${m.year}` : m.branch || m.year}
                               </div>
                             )}
@@ -473,12 +470,12 @@ const ClubDashboard: React.FC = () => {
                 {/* Right Button - Fade in/out on hover */}
                 <button
                   onClick={scrollRight}
-                  className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-md shadow-lg rounded-full p-2.5 hover:bg-white hover:scale-110 transition-all duration-300 ${isCarouselHovered
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-card/90 backdrop-blur-md shadow-lg rounded-full p-2.5 hover:bg-card hover:scale-110 transition-all duration-300 ${isCarouselHovered
                     ? 'opacity-100 translate-x-0'
                     : 'opacity-0 translate-x-2 pointer-events-none'
                     }`}
                 >
-                  <ChevronRight className="w-5 h-5 text-slate-700" />
+                  <ChevronRight className="w-5 h-5 text-foreground" />
                 </button>
               </div>
             </section>
@@ -488,7 +485,7 @@ const ClubDashboard: React.FC = () => {
           <section className="space-y-5">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-semibold tracking-tight text-slate-800">Event Timeline</h2>
+                <h2 className="text-2xl font-semibold tracking-tight text-foreground">Event Timeline</h2>
               </div>
               <Link to="/club/events">
                 <Button variant="outline" size="sm">
@@ -497,26 +494,26 @@ const ClubDashboard: React.FC = () => {
               </Link>
             </div>
 
-            <Card className="p-0 shadow-sm rounded-xl border bg-white overflow-hidden">
+            <Card className="p-0 shadow-sm rounded-xl border overflow-hidden">
               {Object.keys(groupedEvents).length > 0 ? (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-border/30">
                   {Object.entries(groupedEvents).map(([month, events], groupIndex) => (
                     <div key={month} className="p-6">
                       {/* Month Header */}
                       <div className="flex items-center gap-3 mb-5">
-                        <div className="p-2 bg-indigo-50 rounded-lg">
-                          <Calendar className="w-4 h-4 text-indigo-600" />
+                        <div className="p-2 surface-translucent-3 rounded-lg">
+                          <Calendar className="w-4 h-4 text-primary" />
                         </div>
-                        <h3 className="font-semibold text-indigo-600 text-sm uppercase tracking-wider">
+                        <h3 className="font-semibold text-primary text-sm uppercase tracking-wider">
                           {month}
                         </h3>
-                        <div className="flex-1 h-px bg-gradient-to-r from-indigo-100 to-transparent" />
+                        <div className="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
                       </div>
 
                       {/* Events List */}
                       <div className="relative ml-4">
                         {/* Timeline Line */}
-                        <div className="absolute left-0 top-2 bottom-2 w-0.5 bg-gradient-to-b from-indigo-200 via-indigo-100 to-transparent" />
+                        <div className="absolute left-0 top-2 bottom-2 w-0.5 bg-gradient-to-b from-border via-border/50 to-transparent" />
 
                         <div className="space-y-4">
                           {events.map((event, eventIndex) => (
@@ -525,33 +522,33 @@ const ClubDashboard: React.FC = () => {
                               className="relative pl-6 group"
                             >
                               {/* Timeline Dot */}
-                              <div className="absolute left-[-5px] top-2 w-3 h-3 rounded-full border-2 border-white shadow-sm bg-indigo-500" />
+                              <div className="absolute left-[-5px] top-2 w-3 h-3 rounded-full border-2 border-card shadow-sm bg-primary" />
 
                               {/* Event Card */}
-                              <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100">
+                              <div className="p-4 rounded-lg surface-translucent-2 border border-border/50">
                                 <div className="flex items-start justify-between gap-4">
                                   <div className="flex-1 min-w-0">
                                     {/* Event Name */}
-                                    <h4 className="font-medium text-slate-800">
+                                    <h4 className="font-emphasis text-foreground">
                                       {event.name}
                                     </h4>
 
                                     {/* Event Meta */}
-                                    <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-500">
+                                    <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-muted-foreground">
                                       <span className="inline-flex items-center gap-1">
                                         <Clock className="w-3.5 h-3.5" />
                                         {format(new Date(event.date), 'MMM d, yyyy')}
                                       </span>
                                       {event.venue && (
                                         <>
-                                          <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                                          <span className="w-1 h-1 bg-muted-foreground/30 rounded-full" />
                                           <span className="inline-flex items-center gap-1">
-                                            <span className="text-slate-400">📍</span>
+                                            <MapPin className="w-3.5 h-3.5 text-muted-foreground/70" />
                                             {event.venue}
                                           </span>
                                         </>
                                       )}
-                                      <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                                      <span className="w-1 h-1 bg-muted-foreground/30 rounded-full" />
                                       <span className="inline-flex items-center gap-1">
                                         <Users className="w-3.5 h-3.5" />
                                         {event.participants.length} registered
@@ -562,14 +559,14 @@ const ClubDashboard: React.FC = () => {
                                   {/* Status Badge */}
                                   <Badge
                                     className={`shrink-0 text-[10px] font-medium tracking-wide px-2.5 py-1 rounded-full ${event.status === 'pending_approval'
-                                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                      ? 'bg-muted text-muted-foreground border border-border'
                                       : event.status === 'approved'
-                                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                        ? 'bg-success/15 text-success border border-success/20'
                                         : event.status === 'venue_selected'
-                                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                          ? 'bg-primary/10 text-primary/80 border border-primary/15'
                                           : event.status === 'rejected'
-                                            ? 'bg-red-50 text-red-700 border border-red-200'
-                                            : 'bg-slate-50 text-slate-600 border border-slate-200'
+                                            ? 'bg-destructive/15 text-destructive border border-destructive/20'
+                                            : 'bg-muted text-muted-foreground border border-border'
                                       }`}
                                   >
                                     {event.status === 'pending_approval'
@@ -589,11 +586,11 @@ const ClubDashboard: React.FC = () => {
                 </div>
               ) : (
                 <div className="p-12 text-center">
-                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Calendar className="w-8 h-8 text-slate-400" />
+                  <div className="w-16 h-16 surface-translucent-3 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Calendar className="w-8 h-8 text-muted-foreground" />
                   </div>
-                  <h3 className="font-medium text-slate-700 mb-1">No events yet</h3>
-                  <p className="text-sm text-slate-500">
+                  <h3 className="font-emphasis text-foreground mb-1">No events yet</h3>
+                  <p className="text-sm text-muted-foreground">
                     Create your first event to get started!
                   </p>
                 </div>

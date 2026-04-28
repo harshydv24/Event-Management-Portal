@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { EventProvider } from "@/contexts/EventContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
@@ -21,7 +22,7 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode; role: string }) => {
   const { user, isLoading, isEmailVerified } = useAuth();
   if (isLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-white/70 backdrop-blur-sm fixed inset-0 z-50">
+    <div className="min-h-screen flex items-center justify-center bg-background fixed inset-0 z-50">
       <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
     </div>
   );
@@ -53,21 +54,29 @@ const AppRoutes = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <EventProvider>
-            <NotificationProvider>
-              <AppRoutes />
-            </NotificationProvider>
-          </EventProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ThemeProvider
+    attribute="class"
+    defaultTheme="light"
+    enableSystem={false}
+    storageKey="event-portal-theme"
+    themes={["light", "dark"]}
+  >
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <EventProvider>
+              <NotificationProvider>
+                <AppRoutes />
+              </NotificationProvider>
+            </EventProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

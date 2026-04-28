@@ -10,11 +10,13 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
+    <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="text-center">
-        <img src={errorImg} alt="404 Page not found" className="errorImageClass" />
+        <img src={errorImg} alt="404 Page not found" className="errorImageClass mx-auto mb-6" />
         
-        <a href="/" className="backToHome text-primary hover:text-primary/90">Return to Home</a>
+        <a href="/" className="inline-block px-6 py-3 rounded-comfortable bg-primary text-primary-foreground font-emphasis hover:bg-primary/80 transition-all duration-200">
+          Return to Home
+        </a>
       </div>
     </div>
   );

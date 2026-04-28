@@ -1,33 +1,47 @@
-import { useState } from "react";
-import { Moon } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Sun, Moon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const ThemeToggle = () => {
-  const [showPopup, setShowPopup] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  const handleClick = () => {
-    setShowPopup(true);
-    setTimeout(() => setShowPopup(false), 2000);
+  // Prevent hydration mismatch
+  useEffect(() => setMounted(true), []);
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  return (
-    <div className="relative">
+  if (!mounted) {
+    // Render placeholder with same dimensions to prevent layout shift
+    return (
       <button
-        onClick={handleClick}
-        className="transition rounded-full w-9 h-9 p-0 flex items-center justify-center text-white bg-white/10 hover:bg-white/30 border border-white/30"
-        title="Theme toggle"
+        className="rounded-full w-9 h-9 p-0 flex items-center justify-center surface-translucent-2 border border-standard"
+        aria-label="Toggle theme"
       >
-        <Moon className="w-4 h-4 p-0" />
+        <Sun className="w-4 h-4 opacity-50" />
       </button>
+    );
+  }
 
-      {showPopup && (
-        <div
-          className="absolute right-0 top-full mt-2 px-4 py-2 bg-popover border border-border rounded-lg shadow-xl z-[100] whitespace-nowrap text-sm font-medium text-foreground"
-          style={{ animation: 'notifSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
-        >
-          Coming Soon
-        </div>
-      )}
-    </div>
+  // Show the opposite icon: Sun when dark (click to go light), Moon when light (click to go dark)
+  const Icon = theme === "dark" ? Sun : Moon;
+  const label = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+
+  return (
+    <button
+      onClick={toggleTheme}
+      className="rounded-full w-9 h-9 p-0 flex items-center justify-center
+        surface-translucent-2 border border-standard
+        text-foreground/80 hover:text-foreground
+        hover:surface-translucent-3
+        transition-all duration-200 cursor-pointer"
+      title={label}
+      aria-label={label}
+    >
+      <Icon className="w-4 h-4" />
+    </button>
   );
 };
 

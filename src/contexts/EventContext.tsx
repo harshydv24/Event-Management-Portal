@@ -130,7 +130,7 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     try {
       const event = events.find(e => e.id === eventId);
       if (event && (status === 'approved' || status === 'rejected')) {
-        const statusText = status === 'approved' ? 'approved ✅' : 'rejected ❌';
+        const statusText = status === 'approved' ? 'approved' : 'rejected';
         // Notify the club owner (find user by clubId)
         const usersQuery = query(
           collection(db, 'users'),

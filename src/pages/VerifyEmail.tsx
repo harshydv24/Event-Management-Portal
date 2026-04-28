@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, RefreshCw, LogOut, CheckCircle, Loader2 } from 'lucide-react';
+import { Mail, RefreshCw, LogOut, CheckCircle, Loader2, Lightbulb } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const VerifyEmail: React.FC = () => {
@@ -47,7 +47,7 @@ const VerifyEmail: React.FC = () => {
       await resendVerificationEmail();
       setCooldown(60); // 60 second cooldown
       toast({
-        title: 'Email sent! 📧',
+        title: 'Email sent!',
         description: 'Verification email has been resent. Check your inbox and spam folder.',
       });
     } catch {
@@ -65,7 +65,7 @@ const VerifyEmail: React.FC = () => {
     setIsChecking(true);
     const verified = await refreshVerificationStatus();
     if (verified && user) {
-      toast({ title: 'Email verified! ✅', description: 'Redirecting to dashboard...' });
+      toast({ title: 'Email verified!', description: 'Redirecting to dashboard...' });
       navigate(`/${user.role}`);
     } else {
       toast({
@@ -83,10 +83,10 @@ const VerifyEmail: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-background to-muted">
-      <Card className="w-full max-w-md text-center shadow-xl">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-background">
+      <Card className="w-full max-w-md text-center shadow-dialog border border-border">
         <CardHeader className="space-y-4">
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+          <div className="mx-auto w-16 h-16 surface-translucent-3 border border-border rounded-full flex items-center justify-center">
             <Mail className="w-8 h-8 text-primary" />
           </div>
           <CardTitle className="text-2xl">Verify Your Email</CardTitle>
@@ -98,8 +98,8 @@ const VerifyEmail: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
-            💡 Don't forget to check your <strong>spam/junk folder</strong> if you don't see the email.
+          <div className="surface-translucent-2 border border-border rounded-card p-4 text-sm text-muted-foreground">
+            <Lightbulb className="w-4 h-4 inline-block mr-1 -mt-0.5 text-primary" /> Don't forget to check your <strong className="text-foreground">spam/junk folder</strong> if you don't see the email.
           </div>
 
           <Button
