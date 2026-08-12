@@ -14,6 +14,21 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from '@/config/firebase';
 import { User, UserRole } from '@/types';
+import { AppError, logError } from '@/lib/errorUtils';
+import {
+  assertRateLimit,
+  recordAttempt,
+  resetRateLimit,
+  deviceKey,
+  accountKey,
+} from '@/lib/rateLimiter';
+import {
+  validate,
+  signupSchema,
+  loginSchema,
+  firestoreIdSchema,
+  updateProfileSchema,
+} from '@/lib/validationSchemas';
 
 export interface FirebaseUserProfile {
   email: string;
@@ -27,6 +42,8 @@ export interface FirebaseUserProfile {
 
 /**
  * Register a new user with Firebase Auth and create a Firestore profile.
+ *
+ * Rate-limited under the **auth** tier (per-device + per-account).
  */
 export const registerUser = async (
   email: string,
@@ -35,75 +52,129 @@ export const registerUser = async (
   role: UserRole,
   universityId?: string
 ): Promise<User> => {
-  const credential = await createUserWithEmailAndPassword(auth, email.trim(), password.trim());
-  const firebaseUser = credential.user;
+  // Validate inputs against strict schema — reject invalid data
+  validate(signupSchema, { email, password, name, role, universityId });
 
-  await updateProfile(firebaseUser, { displayName: name.trim() });
+  const dKey = deviceKey('signup');
+  const aKey = accountKey(email, 'signup');
 
-  // Build profile data — Firestore does NOT accept undefined values
-  const profileData: Record<string, unknown> = {
-    email: email.trim(),
-    name: name.trim(),
-    role,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  };
+  // Check both device-level and account-level limits
+  assertRateLimit(dKey, 'auth');
+  assertRateLimit(aKey, 'auth');
 
-  // Only add fields that have values (Firestore rejects undefined)
-  if (role === 'student' && universityId?.trim()) {
-    profileData.uid = universityId.trim();
+  try {
+    const credential = await createUserWithEmailAndPassword(auth, email.trim(), password.trim());
+    const firebaseUser = credential.user;
+
+    await updateProfile(firebaseUser, { displayName: name.trim() });
+
+    // Build profile data — Firestore does NOT accept undefined values
+    const profileData: Record<string, unknown> = {
+      email: email.trim(),
+      name: name.trim(),
+      role,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    // Only add fields that have values (Firestore rejects undefined)
+    if (role === 'student' && universityId?.trim()) {
+      profileData.uid = universityId.trim();
+    }
+    if (role === 'club') {
+      profileData.clubId = crypto.randomUUID();
+    }
+
+    await setDoc(doc(db, 'users', firebaseUser.uid), profileData);
+
+    // Send email verification
+    await sendEmailVerification(firebaseUser);
+
+    // Record success & clear backoff
+    recordAttempt(dKey, 'auth', true);
+    recordAttempt(aKey, 'auth', true);
+    resetRateLimit(aKey);
+
+    return {
+      id: firebaseUser.uid,
+      email: email.trim(),
+      name: name.trim(),
+      role,
+      uid: role === 'student' ? universityId?.trim() : undefined,
+      clubId: profileData.clubId as string | undefined,
+    };
+  } catch (error) {
+    // Record failure to increment backoff
+    recordAttempt(dKey, 'auth', false);
+    recordAttempt(aKey, 'auth', false);
+    logError('registerUser', error);
+    throw error;
   }
-  if (role === 'club') {
-    profileData.clubId = crypto.randomUUID();
-  }
-
-  await setDoc(doc(db, 'users', firebaseUser.uid), profileData);
-
-  // Send email verification
-  await sendEmailVerification(firebaseUser);
-
-  return {
-    id: firebaseUser.uid,
-    email: email.trim(),
-    name: name.trim(),
-    role,
-    uid: role === 'student' ? universityId?.trim() : undefined,
-    clubId: profileData.clubId as string | undefined,
-  };
 };
 
 /**
  * Log in an existing user and retrieve their Firestore profile.
+ *
+ * Rate-limited under the **auth** tier (per-device + per-account).
  */
 export const loginUser = async (
   email: string,
   password: string,
   role: UserRole
 ): Promise<User> => {
-  const credential = await signInWithEmailAndPassword(auth, email.trim(), password.trim());
-  const firebaseUser = credential.user;
+  // Validate inputs against strict schema — reject invalid data
+  validate(loginSchema, { email, password, role });
 
-  const profileDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+  const dKey = deviceKey('login');
+  const aKey = accountKey(email, 'login');
 
-  if (!profileDoc.exists()) {
-    throw new Error('User profile not found in database.');
+  // Check both device-level and account-level limits
+  assertRateLimit(dKey, 'auth');
+  assertRateLimit(aKey, 'auth');
+
+  try {
+    const credential = await signInWithEmailAndPassword(auth, email.trim(), password.trim());
+    const firebaseUser = credential.user;
+
+    const profileDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+
+    if (!profileDoc.exists()) {
+      throw new AppError(
+        'User profile not found in database.',
+        'Unable to find your account. Please contact support.',
+      );
+    }
+
+    const profile = profileDoc.data() as FirebaseUserProfile;
+
+    if (profile.role !== role) {
+      await signOut(auth);
+      throw new AppError(
+        `Role mismatch: profile=${profile.role}, requested=${role}`,
+        'Invalid role. Please select the correct login portal.',
+      );
+    }
+
+    // Record success & clear backoff for this account
+    recordAttempt(dKey, 'auth', true);
+    recordAttempt(aKey, 'auth', true);
+    resetRateLimit(aKey);
+
+    return {
+      id: firebaseUser.uid,
+      email: profile.email,
+      name: profile.name,
+      role: profile.role,
+      uid: profile.uid,
+      clubId: profile.clubId,
+    };
+  } catch (error) {
+    // Record failure to increment backoff
+    recordAttempt(dKey, 'auth', false);
+    recordAttempt(aKey, 'auth', false);
+    logError('loginUser', error);
+    throw error;
   }
-
-  const profile = profileDoc.data() as FirebaseUserProfile;
-
-  if (profile.role !== role) {
-    await signOut(auth);
-    throw new Error(`This account is registered as "${profile.role}", not "${role}".`);
-  }
-
-  return {
-    id: firebaseUser.uid,
-    email: profile.email,
-    name: profile.name,
-    role: profile.role,
-    uid: profile.uid,
-    clubId: profile.clubId,
-  };
 };
 
 /**
@@ -117,6 +188,9 @@ export const logoutUser = async (): Promise<void> => {
  * Fetch a user's profile from Firestore.
  */
 export const getUserProfile = async (userId: string): Promise<User | null> => {
+  // Validate userId
+  validate(firestoreIdSchema, userId);
+
   const profileDoc = await getDoc(doc(db, 'users', userId));
 
   if (!profileDoc.exists()) return null;
@@ -139,6 +213,10 @@ export const updateUserProfile = async (
   userId: string,
   updates: Partial<Pick<User, 'name' | 'uid'>>
 ): Promise<void> => {
+  // Validate inputs
+  validate(firestoreIdSchema, userId);
+  validate(updateProfileSchema, updates);
+
   await updateDoc(doc(db, 'users', userId), {
     ...updates,
     updatedAt: serverTimestamp(),

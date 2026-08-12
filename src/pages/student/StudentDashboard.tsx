@@ -16,6 +16,7 @@ import { Calendar, MapPin, Clock, Users, User, Ticket, Eye, Plus, Minus, Check }
 import { format } from 'date-fns';
 import { Event, VENUES, EventParticipant } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { logError, sanitizeErrorMessage } from '@/lib/errorUtils';
 
 const StudentDashboard: React.FC = () => {
   const { events = [], registerForEvent, registerTeamForEvent } = useEvents();
@@ -196,10 +197,10 @@ const StudentDashboard: React.FC = () => {
         { name: '', uid: '', email: '', branch: '', sec: '', isLeader: false },
       ]);
     } catch (error) {
-      console.error('Registration failed:', error);
+      logError('handleRegister', error);
       toast({
         title: 'Registration Failed',
-        description: 'Something went wrong. Please try again.',
+        description: sanitizeErrorMessage(error, 'Something went wrong. Please try again.'),
         variant: 'destructive',
       });
     }

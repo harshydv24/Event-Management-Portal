@@ -12,77 +12,115 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { Notification, UserRole } from '@/types';
+import { withRateLimit, deviceKey } from '@/lib/rateLimiter';
+import {
+  validate,
+  createNotificationSchema,
+  notificationForUserSchema,
+  notificationsForRoleSchema,
+  firestoreIdSchema,
+} from '@/lib/validationSchemas';
 
 const COLLECTION = 'notifications';
 
 /**
  * Create a new notification.
+ *
+ * Rate-limited under the **authenticated** tier.
  */
 export const createNotification = async (
   data: Omit<Notification, 'id' | 'createdAt'>
 ): Promise<void> => {
-  await addDoc(collection(db, COLLECTION), {
-    ...data,
-    createdAt: serverTimestamp(),
+  return withRateLimit(deviceKey('createNotification'), 'authenticated', async () => {
+    // Validate the full notification object
+    validate(createNotificationSchema, data);
+
+    await addDoc(collection(db, COLLECTION), {
+      ...data,
+      createdAt: serverTimestamp(),
+    });
   });
 };
 
 /**
  * Get all notifications for a specific user, ordered by newest first.
+ *
+ * Rate-limited under the **authenticated** tier (user-scoped data).
  */
 export const getNotifications = async (userId: string): Promise<Notification[]> => {
-  const q = query(
-    collection(db, COLLECTION),
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
-  );
-  const snapshot = await getDocs(q);
+  // Validate userId
+  validate(firestoreIdSchema, userId);
 
-  return snapshot.docs.map((docSnap) => {
-    const data = docSnap.data();
-    return {
-      id: docSnap.id,
-      userId: data.userId,
-      role: data.role,
-      message: data.message,
-      relatedEventId: data.relatedEventId,
-      isRead: data.isRead ?? false,
-      createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-    } as Notification;
+  return withRateLimit(deviceKey('getNotifications'), 'authenticated', async () => {
+    const q = query(
+      collection(db, COLLECTION),
+      where('userId', '==', userId),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map((docSnap) => {
+      const data = docSnap.data();
+      return {
+        id: docSnap.id,
+        userId: data.userId,
+        role: data.role,
+        message: data.message,
+        relatedEventId: data.relatedEventId,
+        isRead: data.isRead ?? false,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+      } as Notification;
+    });
   });
 };
 
 /**
  * Mark a single notification as read.
+ *
+ * Rate-limited under the **authenticated** tier.
  */
 export const markNotificationAsRead = async (notificationId: string): Promise<void> => {
-  await updateDoc(doc(db, COLLECTION, notificationId), {
-    isRead: true,
+  // Validate notificationId
+  validate(firestoreIdSchema, notificationId);
+
+  return withRateLimit(deviceKey('markNotificationAsRead'), 'authenticated', async () => {
+    await updateDoc(doc(db, COLLECTION, notificationId), {
+      isRead: true,
+    });
   });
 };
 
 /**
  * Mark all notifications as read for a given user.
+ *
+ * Rate-limited under the **authenticated** tier.
  */
 export const markAllNotificationsAsRead = async (userId: string): Promise<void> => {
-  const q = query(
-    collection(db, COLLECTION),
-    where('userId', '==', userId),
-    where('isRead', '==', false)
-  );
-  const snapshot = await getDocs(q);
+  // Validate userId
+  validate(firestoreIdSchema, userId);
 
-  if (snapshot.empty) return;
+  return withRateLimit(deviceKey('markAllNotificationsAsRead'), 'authenticated', async () => {
+    const q = query(
+      collection(db, COLLECTION),
+      where('userId', '==', userId),
+      where('isRead', '==', false)
+    );
+    const snapshot = await getDocs(q);
 
-  const batch = writeBatch(db);
-  snapshot.docs.forEach((docSnap) => {
-    batch.update(docSnap.ref, { isRead: true });
+    if (snapshot.empty) return;
+
+    const batch = writeBatch(db);
+    snapshot.docs.forEach((docSnap) => {
+      batch.update(docSnap.ref, { isRead: true });
+    });
+    await batch.commit();
   });
-  await batch.commit();
 };
 
 /**
  * Create a notification for a specific user (by their Firebase Auth UID).
+ *
+ * Rate-limited under the **authenticated** tier.
  */
 export const createNotificationForUser = async (
   userId: string,
@@ -90,6 +128,9 @@ export const createNotificationForUser = async (
   message: string,
   relatedEventId?: string
 ): Promise<void> => {
+  // Validate inputs
+  validate(notificationForUserSchema, { userId, role, message, relatedEventId });
+
   await createNotification({
     userId,
     role,
@@ -102,32 +143,39 @@ export const createNotificationForUser = async (
 /**
  * Create notifications for all users with a specific role.
  * Fetches users from the 'users' collection, then batch-creates notifications.
+ *
+ * Rate-limited under the **authenticated** tier.
  */
 export const createNotificationsForRole = async (
   role: UserRole,
   message: string,
   relatedEventId?: string
 ): Promise<void> => {
-  const usersQuery = query(
-    collection(db, 'users'),
-    where('role', '==', role)
-  );
-  const usersSnapshot = await getDocs(usersQuery);
+  // Validate inputs
+  validate(notificationsForRoleSchema, { role, message, relatedEventId });
 
-  const batch = writeBatch(db);
-  usersSnapshot.docs.forEach((userDoc) => {
-    const notifRef = doc(collection(db, COLLECTION));
-    batch.set(notifRef, {
-      userId: userDoc.id,
-      role,
-      message,
-      relatedEventId: relatedEventId || null,
-      isRead: false,
-      createdAt: serverTimestamp(),
+  return withRateLimit(deviceKey('createNotificationsForRole'), 'authenticated', async () => {
+    const usersQuery = query(
+      collection(db, 'users'),
+      where('role', '==', role)
+    );
+    const usersSnapshot = await getDocs(usersQuery);
+
+    const batch = writeBatch(db);
+    usersSnapshot.docs.forEach((userDoc) => {
+      const notifRef = doc(collection(db, COLLECTION));
+      batch.set(notifRef, {
+        userId: userDoc.id,
+        role,
+        message,
+        relatedEventId: relatedEventId || null,
+        isRead: false,
+        createdAt: serverTimestamp(),
+      });
     });
-  });
 
-  if (!usersSnapshot.empty) {
-    await batch.commit();
-  }
+    if (!usersSnapshot.empty) {
+      await batch.commit();
+    }
+  });
 };

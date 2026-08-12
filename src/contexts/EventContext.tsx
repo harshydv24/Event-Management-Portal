@@ -6,6 +6,7 @@ import * as eventService from '@/services/eventService';
 import * as clubService from '@/services/clubService';
 import * as notificationService from '@/services/notificationService';
 import { Event, Club, EventParticipant } from '@/types';
+import { logError } from '@/lib/errorUtils';
 
 interface EventContextType {
   events: Event[];
@@ -77,7 +78,7 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setEvents(eventsData);
         setIsLoading(false);
       }, (error) => {
-        console.error('Error listening to events:', error);
+        logError('EventContext:onSnapshot:events', error);
         setIsLoading(false);
       });
 
@@ -99,7 +100,7 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         });
         setClubs(clubsData);
       }, (error) => {
-        console.error('Error listening to clubs:', error);
+        logError('EventContext:onSnapshot:clubs', error);
       });
     });
 
@@ -120,7 +121,7 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         newEvent.id
       );
     } catch (err) {
-      console.error('Failed to send notification:', err);
+      logError('handleCreateEvent:notification', err);
     }
   }, []);
 
@@ -161,7 +162,7 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         }
       }
     } catch (err) {
-      console.error('Failed to send notification:', err);
+      logError('handleUpdateEventStatus:notification', err);
     }
   }, [events]);
 
@@ -193,7 +194,7 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         }
       }
     } catch (err) {
-      console.error('Failed to send notification:', err);
+      logError('handleRegisterForEvent:notification', err);
     }
   }, [events]);
 

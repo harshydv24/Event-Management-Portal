@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { useToast } from "@/hooks/use-toast";
+import { logError } from '@/lib/errorUtils';
 // TODO: Re-enable when Firebase Storage is set up
 // import { uploadEventFile } from "@/services/storageService";
 
@@ -237,7 +238,7 @@ const CreateEvent: React.FC = () => {
       });
       navigate("/club/events");
     } catch (error) {
-      console.error('Failed to create event:', error);
+      logError('handleSubmit:createEvent', error);
       toast({
         title: "Submission Failed",
         description: "Something went wrong. Please try again.",

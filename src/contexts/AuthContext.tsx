@@ -8,6 +8,9 @@ import {
   getUserProfile,
 } from '@/services/authService';
 import { User, UserRole } from '@/types';
+import { RateLimitError } from '@/lib/rateLimiter';
+import { ValidationError } from '@/lib/validationSchemas';
+import { AppError, logError } from '@/lib/errorUtils';
 
 interface AuthContextType {
   user: User | null;
@@ -56,7 +59,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsEmailVerified(auth.currentUser?.emailVerified || false);
       return true;
     } catch (error) {
-      console.error('Login failed:', error);
+      // Re-throw RateLimitError / ValidationError / AppError so the UI can display them
+      if (error instanceof RateLimitError || error instanceof ValidationError || error instanceof AppError) {
+        throw error;
+      }
+      logError('login', error);
       return false;
     }
   };
@@ -74,9 +81,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsEmailVerified(false); // New signup is never verified yet
       return true;
     } catch (error: unknown) {
+      // Re-throw RateLimitError / ValidationError / AppError so the UI can display them
+      if (error instanceof RateLimitError || error instanceof ValidationError || error instanceof AppError) {
+        throw error;
+      }
+      logError('signup', error);
+      // Re-throw with Firebase error code preserved for downstream mapping
       const firebaseError = error as { code?: string; message?: string };
-      console.error('Signup failed:', firebaseError.code, firebaseError.message);
-      throw firebaseError;
+      throw Object.assign(new Error('Signup failed'), { code: firebaseError.code });
     }
   };
 
@@ -86,7 +98,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser(null);
       setIsEmailVerified(false);
     } catch (error) {
-      console.error('Logout failed:', error);
+      logError('logout', error);
     }
   };
 

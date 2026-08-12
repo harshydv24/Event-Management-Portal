@@ -17,6 +17,7 @@ import { Calendar, Clock, Users, MapPin, Check, X, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { useEvents } from "@/contexts/EventContext";
 import { useToast } from "@/hooks/use-toast";
+import { logError } from '@/lib/errorUtils';
 import { Event } from "@/types";
 
 type TabType = "all" | "pending" | "approved" | "rejected";
@@ -92,7 +93,7 @@ const DepartmentDashboard: React.FC = () => {
       await updateEventStatus(ev.id, 'approved');
       toast({ title: "Approved", description: `${ev.name} approved successfully` });
     } catch (error) {
-      console.error('Approval failed:', error);
+      logError('handleApprove', error);
       toast({ title: "Error", description: "Failed to approve event", variant: "destructive" });
     }
   };
@@ -106,7 +107,7 @@ const DepartmentDashboard: React.FC = () => {
       setFeedback("");
       setSelectedEvent(null);
     } catch (error) {
-      console.error('Rejection failed:', error);
+      logError('handleReject', error);
       toast({ title: "Error", description: "Failed to reject event", variant: "destructive" });
     }
   };

@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { EventProvider } from "@/contexts/EventContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import LoginPage from "./pages/LoginPage";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import StudentEvents from "./pages/student/StudentEvents";
@@ -69,7 +70,9 @@ const App = () => (
           <AuthProvider>
             <EventProvider>
               <NotificationProvider>
-                <AppRoutes />
+                <ErrorBoundary>
+                  <AppRoutes />
+                </ErrorBoundary>
               </NotificationProvider>
             </EventProvider>
           </AuthProvider>

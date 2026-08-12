@@ -2,6 +2,9 @@ import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserRole } from "@/types";
+import { RateLimitError } from "@/lib/rateLimiter";
+import { ValidationError } from "@/lib/validationSchemas";
+import { AppError, sanitizeErrorMessage, logError } from "@/lib/errorUtils";
 import ThemeToggle from "@/components/ThemeToggle";
 import FloatingDoodles from "@/components/FloatingDoodles";
 import MagneticEyesLogo from "@/components/MorphingLogo";
@@ -102,25 +105,28 @@ const LoginPage: React.FC = () => {
             navigate('/verify-email');
           }
         } catch (err: unknown) {
-          const firebaseErr = err as { code?: string; message?: string };
-          let errorMsg = "Something went wrong. Please try again.";
-
-          switch (firebaseErr.code) {
-            case "auth/email-already-in-use":
-              errorMsg = "An account with this email already exists. Try logging in instead.";
-              break;
-            case "auth/weak-password":
-              errorMsg = "Password must be at least 6 characters long.";
-              break;
-            case "auth/invalid-email":
-              errorMsg = "Please enter a valid email address.";
-              break;
-            case "auth/network-request-failed":
-              errorMsg = "Network error. Please check your internet connection.";
-              break;
-            default:
-              errorMsg = firebaseErr.message || errorMsg;
+          // Surface rate-limit or validation errors with their built-in message
+          if (err instanceof RateLimitError) {
+            toast({
+              title: "Too many attempts",
+              description: err.message,
+              variant: "destructive",
+            });
+            return;
           }
+          if (err instanceof ValidationError) {
+            toast({
+              title: "Invalid input",
+              description: err.message,
+              variant: "destructive",
+            });
+            return;
+          }
+
+          const firebaseErr = err as { code?: string; message?: string };
+          logError('signup', err);
+
+          const errorMsg = sanitizeErrorMessage(err, 'Something went wrong. Please try again.');
 
           toast({
             title: "Signup failed",
@@ -128,6 +134,27 @@ const LoginPage: React.FC = () => {
             variant: "destructive",
           });
         }
+      }
+    } catch (err: unknown) {
+      // Catch RateLimitError / ValidationError from login (re-thrown by AuthContext)
+      if (err instanceof RateLimitError) {
+        toast({
+          title: "Too many attempts",
+          description: err.message,
+          variant: "destructive",
+        });
+      } else if (err instanceof ValidationError) {
+        toast({
+          title: "Invalid input",
+          description: err.message,
+          variant: "destructive",
+        });
+      } else if (err instanceof AppError) {
+        toast({
+          title: "Login failed",
+          description: err.userMessage,
+          variant: "destructive",
+        });
       }
     } finally {
       setIsLoading(false);

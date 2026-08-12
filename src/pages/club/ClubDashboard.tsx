@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { logError } from '@/lib/errorUtils';
 
 const monthLabel = (date: string) => format(new Date(date), 'MMM yyyy');
 
@@ -135,7 +136,7 @@ const ClubDashboard: React.FC = () => {
       }).then((newClub) => {
         setClub(newClub);
       }).catch((err) => {
-        console.error('Failed to create club:', err);
+        logError('createClub', err);
         setClub(clubs[0] || null);
       });
       return;
@@ -383,7 +384,7 @@ const ClubDashboard: React.FC = () => {
                           setNewMember({ name: '', uid: '', branch: '', year: '', designation: '' });
                           setIsAddMemberOpen(false);
                         } catch (err) {
-                          console.error('Failed to add member:', err);
+                          logError('addMember', err);
                         }
                       }
                     }}>Add Member</Button>

@@ -4,6 +4,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '@/config/firebase';
 import * as notificationService from '@/services/notificationService';
 import { Notification } from '@/types';
+import { logError } from '@/lib/errorUtils';
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -62,7 +63,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
           setIsLoading(false);
         },
         (error) => {
-          console.error('Error listening to notifications:', error);
+          logError('NotificationContext:onSnapshot', error);
           setIsLoading(false);
         }
       );

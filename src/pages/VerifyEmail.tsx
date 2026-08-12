@@ -5,6 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, RefreshCw, LogOut, CheckCircle, Loader2, Lightbulb } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  assertRateLimit,
+  recordAttempt,
+  deviceKey,
+  RateLimitError,
+} from '@/lib/rateLimiter';
 
 const VerifyEmail: React.FC = () => {
   const { user, isEmailVerified, resendVerificationEmail, refreshVerificationStatus, logout } = useAuth();
@@ -42,15 +48,32 @@ const VerifyEmail: React.FC = () => {
   }, [cooldown]);
 
   const handleResend = async () => {
+    // Check rate limit before attempting to resend
+    const rlKey = deviceKey('resendVerificationEmail');
+    try {
+      assertRateLimit(rlKey, 'resendEmail');
+    } catch (err) {
+      if (err instanceof RateLimitError) {
+        toast({
+          title: 'Too many attempts',
+          description: err.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     setIsResending(true);
     try {
       await resendVerificationEmail();
+      recordAttempt(rlKey, 'resendEmail', true);
       setCooldown(60); // 60 second cooldown
       toast({
         title: 'Email sent!',
         description: 'Verification email has been resent. Check your inbox and spam folder.',
       });
     } catch {
+      recordAttempt(rlKey, 'resendEmail', false);
       toast({
         title: 'Failed to send',
         description: 'Please wait a moment and try again.',
