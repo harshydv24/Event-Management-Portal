@@ -179,19 +179,6 @@ Access is enforced server-side via Firestore rules:
 - **Department** users have read access across all collections and can approve/reject events and manage clubs.
 - All write operations require an authenticated, email-verified user.
 
-## Venues
-
-The following venues are available for department assignment:
-
-| ID | Name | Capacity |
-|---|---|---|
-| c1-audi | C1 Auditorium | 500 |
-| c3-audi | C3 Auditorium | 300 |
-| b1 | B1 Hall | 150 |
-| d7 | D7 Conference Room | 80 |
-| open-air | Open Air Theatre | 1000 |
-| seminar-hall | Seminar Hall | 200 |
-
 ## Contributing
 
 Contributions are welcome! If you find a bug or have an improvement in mind:
