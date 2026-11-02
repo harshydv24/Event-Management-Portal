@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import 'multer';
 import { isCloudinaryConfigured, uploadToCloudinary } from '../config/cloudinary.js';
 
 /**
