@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # ─── MongoDB Database (Local Container) ──────────────────────────────────
+  mongodb:
+    image: mongo:7-jammy
+    container_name: event-nexus-mongodb
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - event-nexus-net
+
+  # ─── Express API Backend ─────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: event-nexus-backend
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+    environment:
+      - PORT=5000
+      # Uses local container MongoDB by default, or Atlas connection string from host .env
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017/event-nexus}
+      - FIREBASE_SERVICE_ACCOUNT_PATH=/app/firebase-service-account.json
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:8080}
+      - UPLOAD_DIR=/app/uploads
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME:-}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY:-}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET:-}
+      - CLOUDINARY_FOLDER=${CLOUDINARY_FOLDER:-event-nexus}
+    volumes:
+      - ./server/firebase-service-account.json:/app/firebase-service-account.json:ro
+      - uploads_data:/app/uploads
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - event-nexus-net
+
+  # ─── React / Vite Frontend (Nginx Alpine) ─────────────────────────────────
+  frontend:
+    build:
+      context: ./event-nexus-main
+      dockerfile: Dockerfile
+      args:
+        - VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY:-AIzaSyDBhQj_lcw7jaS8ytOYenmgZaharglauG8}
+        - VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN:-event-management-portal-b5e4e.firebaseapp.com}
+        - VITE_FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID:-event-management-portal-b5e4e}
+        - VITE_FIREBASE_STORAGE_BUCKET=${VITE_FIREBASE_STORAGE_BUCKET:-event-management-portal-b5e4e.firebasestorage.app}
+        - VITE_FIREBASE_MESSAGING_SENDER_ID=${VITE_FIREBASE_MESSAGING_SENDER_ID:-127861963890}
+        - VITE_FIREBASE_APP_ID=${VITE_FIREBASE_APP_ID:-1:127861963890:web:473c77af7f4a993b0b96eb}
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:5000/api}
+    container_name: event-nexus-frontend
+    restart: unless-stopped
+    ports:
+      - '8080:80'
+    depends_on:
+      - backend
+    networks:
+      - event-nexus-net
+
+# ─── Persistent Storage Volumes ───────────────────────────────────────────
+volumes:
+  mongo_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+# ─── Internal Network ─────────────────────────────────────────────────────
+networks:
+  event-nexus-net:
+    driver: bridge
+

@@ -1,0 +1,26 @@
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { logError } from '@/lib/errorUtils';
+import errorImg from "/images/404error.png";
+
+const NotFound = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    logError('NotFound', `404: User attempted to access non-existent route: ${location.pathname}`);
+  }, [location.pathname]);
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="text-center">
+        <img src={errorImg} alt="404 Page not found" className="errorImageClass mx-auto mb-6" />
+        
+        <a href="/" className="inline-block px-6 py-3 rounded-comfortable bg-primary text-primary-foreground font-emphasis hover:bg-primary/80 transition-all duration-200">
+          Return to Home
+        </a>
+      </div>
+    </div>
+  );
+};
+
+export default NotFound;
