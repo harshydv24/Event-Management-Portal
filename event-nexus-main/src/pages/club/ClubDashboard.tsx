@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEvents } from '@/contexts/EventContext';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   Clock,
   Pencil,
-  MapPin
+  MapPin,
+  Trash2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Club } from '@/types';
@@ -36,16 +37,16 @@ import { logError } from '@/lib/errorUtils';
 const monthLabel = (date: string) => format(new Date(date), 'MMM yyyy');
 
 const fallbackMembers = [
-  { name: "Yogesh Kumamr", designation: "Secretary", branch: "CSE", year: "3rd" },
-  { name: "Disha K", designation: "Joint Secretary", branch: "ECE", year: "3rd" },
+  { name: "Yogesh Kumar", designation: "Secretary", branch: "CSE", year: "3rd" },
+  { name: "Disha Kapoor", designation: "Joint Secretary", branch: "ECE", year: "3rd" },
   { name: "Simran Kaur", designation: "UI/UX Designer", branch: "CSE", year: "2nd" },
   { name: "Rohit Sharma", designation: "Events Head", branch: "ME", year: "3rd" },
   { name: "Neha Gupta", designation: "Media Lead", branch: "CSE", year: "3rd" },
-  { name: "Aman Verma", designation: "CSE Student", branch: "CSE", year: "2nd" },
+  { name: "Aman Verma", designation: "Tech Lead", branch: "CSE", year: "2nd" },
   { name: "Jasleen Kaur", designation: "Planning Head", branch: "ECE", year: "3rd" },
   { name: "Rohit Gupta", designation: "Co Events Head", branch: "ME", year: "2nd" },
-  { name: "Naina", designation: "PR Head", branch: "CSE", year: "3rd" },
-  { name: "Disha", designation: "Research Lead", branch: "ECE", year: "2nd" },
+  { name: "Naina Singh", designation: "PR Head", branch: "CSE", year: "3rd" },
+  { name: "Disha Sen", designation: "Research Lead", branch: "ECE", year: "2nd" },
 ];
 
 const ClubDashboard: React.FC = () => {
@@ -55,62 +56,232 @@ const ClubDashboard: React.FC = () => {
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [newMember, setNewMember] = useState({ name: '', uid: '', branch: '', year: '', designation: '' });
   const [isCarouselHovered, setIsCarouselHovered] = useState(false);
-  const [isScrollPaused, setIsScrollPaused] = useState(false);
+  const [removedMemberNames, setRemovedMemberNames] = useState<string[]>([]);
 
-  const marqueeRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const set0Ref = useRef<HTMLDivElement>(null);
 
-  const scrollLeft = () => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
+  const posRef = useRef(0);
+  const targetPosRef = useRef(0);
+  const singleSetWidthRef = useRef(0);
+  const isHoveredRef = useRef(false);
+  const isPausedRef = useRef(false);
+  const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const prevTeamLengthRef = useRef(club?.coreTeam?.length || 0);
 
-    // Pause auto-scroll temporarily
-    setIsScrollPaused(true);
+  // Reset carousel to start when members change or on command
+  const resetCarousel = useCallback(() => {
+    const width = set0Ref.current
+      ? set0Ref.current.getBoundingClientRect().width + 24
+      : singleSetWidthRef.current;
 
-    // Check if we're near the start - if so, teleport to middle first
-    if (container.scrollLeft < 300) {
-      // Teleport to the middle section (instant jump)
-      const middlePosition = container.scrollWidth / 3;
-      container.scrollLeft = middlePosition;
+    if (width > 24) {
+      singleSetWidthRef.current = width;
+      posRef.current = width;
+      targetPosRef.current = width;
+      if (trackRef.current) {
+        trackRef.current.style.transform = `translate3d(-${width}px, 0, 0)`;
+      }
+    } else {
+      posRef.current = 0;
+      targetPosRef.current = 0;
+      if (trackRef.current) {
+        trackRef.current.style.transform = 'translate3d(0px, 0, 0)';
+      }
     }
+    isPausedRef.current = false;
+    if (pauseTimeoutRef.current) {
+      clearTimeout(pauseTimeoutRef.current);
+    }
+  }, []);
 
-    // Smooth scroll left
-    container.scrollBy({
-      left: -280,
-      behavior: 'smooth'
+  // Track changes to team length to automatically reset carousel to start
+  useEffect(() => {
+    const currentLength = club?.coreTeam?.length || 0;
+    if (currentLength !== prevTeamLengthRef.current) {
+      prevTeamLengthRef.current = currentLength;
+      const timer = setTimeout(() => {
+        resetCarousel();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [club?.coreTeam?.length, resetCarousel]);
+
+  // Measure single set width with ResizeObserver
+  useEffect(() => {
+    const updateWidth = () => {
+      if (set0Ref.current) {
+        const width = set0Ref.current.getBoundingClientRect().width + 24;
+        if (width > 24) {
+          singleSetWidthRef.current = width;
+          if (posRef.current === 0) {
+            posRef.current = width;
+            targetPosRef.current = width;
+            if (trackRef.current) {
+              trackRef.current.style.transform = `translate3d(-${width}px, 0, 0)`;
+            }
+          }
+        }
+      }
+    };
+
+    updateWidth();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateWidth();
     });
 
-    // Resume auto-scroll after a delay
-    setTimeout(() => {
-      setIsScrollPaused(false);
-    }, 2000);
+    if (set0Ref.current) {
+      resizeObserver.observe(set0Ref.current);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [club]);
+
+  // Continuous auto-scroll and smooth navigation loop via requestAnimationFrame
+  useEffect(() => {
+    let animId: number;
+
+    const step = () => {
+      const setWidth = singleSetWidthRef.current;
+
+      if (setWidth > 0) {
+        if (!isHoveredRef.current && !isPausedRef.current) {
+          targetPosRef.current += 0.8;
+        }
+
+        const diff = targetPosRef.current - posRef.current;
+        if (Math.abs(diff) > 0.05) {
+          posRef.current += diff * 0.12;
+        } else {
+          posRef.current = targetPosRef.current;
+        }
+
+        // Infinite loop wrapping: maintain posRef in [setWidth, 2 * setWidth)
+        if (posRef.current >= 2 * setWidth) {
+          posRef.current -= setWidth;
+          targetPosRef.current -= setWidth;
+        } else if (posRef.current < setWidth) {
+          posRef.current += setWidth;
+          targetPosRef.current += setWidth;
+        }
+
+        if (trackRef.current) {
+          trackRef.current.style.transform = `translate3d(-${posRef.current}px, 0, 0)`;
+        }
+      }
+
+      animId = requestAnimationFrame(step);
+    };
+
+    animId = requestAnimationFrame(step);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      if (pauseTimeoutRef.current) {
+        clearTimeout(pauseTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const scrollLeft = () => {
+    isPausedRef.current = true;
+    targetPosRef.current -= 280;
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    pauseTimeoutRef.current = setTimeout(() => {
+      isPausedRef.current = false;
+    }, 2500);
   };
 
   const scrollRight = () => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
+    isPausedRef.current = true;
+    targetPosRef.current += 280;
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    pauseTimeoutRef.current = setTimeout(() => {
+      isPausedRef.current = false;
+    }, 2500);
+  };
 
-    // Pause auto-scroll temporarily
-    setIsScrollPaused(true);
+  const handleDeleteMember = async (memberToDelete: any) => {
+    if (!club) return;
 
-    // Check if we're near the end - if so, teleport to middle first
-    const maxScroll = container.scrollWidth - container.clientWidth;
-    if (container.scrollLeft > maxScroll - 300) {
-      // Teleport to the middle section (instant jump)
-      const middlePosition = container.scrollWidth / 3;
-      container.scrollLeft = middlePosition;
+    const targetName = (memberToDelete.name || '').toLowerCase();
+    setRemovedMemberNames((prev) => [...prev, targetName]);
+
+    // If it's a real member in club.coreTeam, update backend
+    const isRealMember = (club.coreTeam || []).some(
+      (m) => (m.id && m.id === memberToDelete.id) || m.name.toLowerCase() === targetName
+    );
+
+    if (isRealMember) {
+      const updatedCoreTeam = (club.coreTeam || []).filter(
+        (m) => (memberToDelete.id ? m.id !== memberToDelete.id : m.name.toLowerCase() !== targetName)
+      );
+      try {
+        await updateClub(club.id, { coreTeam: updatedCoreTeam });
+        setClub((prevClub) => (prevClub ? { ...prevClub, coreTeam: updatedCoreTeam } : null));
+      } catch (err) {
+        logError('deleteMember', err);
+      }
     }
 
-    // Smooth scroll right
-    container.scrollBy({
-      left: 280,
-      behavior: 'smooth'
-    });
-
-    // Resume auto-scroll after a delay
     setTimeout(() => {
-      setIsScrollPaused(false);
-    }, 2000);
+      resetCarousel();
+    }, 50);
+  };
+
+  const renderMemberCard = (m: any, key: string) => {
+    const initials = (m.name || 'U')
+      .trim()
+      .split(/\s+/)
+      .map((s: string) => s[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+
+    return (
+      <Card
+        key={key}
+        className="relative group/card inline-flex flex-col justify-between min-w-[220px] max-w-[220px]
+          backdrop-blur-sm border rounded-xl px-4 py-5
+          hover:shadow-xl hover:-translate-y-[2px] hover:scale-[1.03]
+          transition duration-200 cursor-pointer flex-shrink-0 select-none"
+      >
+        {/* Delete button in top-right corner, visible on card hover */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDeleteMember(m);
+          }}
+          className="absolute top-2.5 right-2.5 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/15 opacity-0 group-hover/card:opacity-100 transition-all duration-200 z-10"
+          title={`Remove ${m.name}`}
+          aria-label={`Remove ${m.name}`}
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+
+        <div className="flex items-center justify-center mb-2">
+          <div className="w-12 h-12 bg-primary text-primary-foreground flex items-center justify-center rounded-full text-sm font-emphasis shadow">
+            {initials}
+          </div>
+        </div>
+
+        <div className="text-center space-y-1">
+          <div className="font-emphasis tracking-tight text-[15px] truncate">{m.name}</div>
+          <Badge variant="outline" className="text-[10px] tracking-wide px-2 py-[1px]">
+            {m.designation}
+          </Badge>
+          {(m.branch || m.year) && (
+            <div className="text-[11px] text-muted-foreground mt-1 font-emphasis">
+              {m.branch && m.year ? `${m.branch} ${m.year}` : m.branch || m.year}
+            </div>
+          )}
+        </div>
+      </Card>
+    );
   };
 
   useEffect(() => {
@@ -162,6 +333,19 @@ const ClubDashboard: React.FC = () => {
   const pendingEvents = clubEvents.filter(e => e.status === 'pending_approval');
   const completedEvents = clubEvents.filter(e => e.status === 'completed');
   const totalParticipants = clubEvents.reduce((sum, e) => sum + e.participants.length, 0);
+
+  // Combine real members with fake/fallback members so the carousel is richly populated
+  const existingTeam = (club.coreTeam || []).filter(
+    (m) => !removedMemberNames.includes(m.name.toLowerCase())
+  );
+  const fakeMembers = fallbackMembers.filter(
+    (fb) =>
+      !existingTeam.some((m) => m.name.toLowerCase() === fb.name.toLowerCase()) &&
+      !removedMemberNames.includes(fb.name.toLowerCase())
+  );
+  const baseMembers = [...existingTeam, ...fakeMembers];
+  const repeatMultiplier = Math.max(1, Math.ceil(8 / Math.max(baseMembers.length, 1)));
+  const fullSetMembers = Array.from({ length: repeatMultiplier }, () => baseMembers).flat();
 
   const groupedEvents = clubEvents.reduce((acc, event) => {
     const m = monthLabel(event.date);
@@ -376,7 +560,7 @@ const ClubDashboard: React.FC = () => {
                           branch: newMember.branch,
                           year: newMember.year,
                         };
-                        const updatedCoreTeam = [...club.coreTeam, member];
+                        const updatedCoreTeam = [...(club.coreTeam || []), member];
                         try {
                           await updateClub(club.id, { coreTeam: updatedCoreTeam });
                           setClub(prevClub => {
@@ -385,6 +569,9 @@ const ClubDashboard: React.FC = () => {
                           });
                           setNewMember({ name: '', uid: '', branch: '', year: '', designation: '' });
                           setIsAddMemberOpen(false);
+                          setTimeout(() => {
+                            resetCarousel();
+                          }, 50);
                         } catch (err) {
                           logError('addMember', err);
                         }
@@ -401,82 +588,66 @@ const ClubDashboard: React.FC = () => {
               </div>
 
               <div
-                className="relative py-2"
-                onMouseEnter={() => setIsCarouselHovered(true)}
-                onMouseLeave={() => setIsCarouselHovered(false)}
+                className="relative py-2 group"
+                onMouseEnter={() => {
+                  setIsCarouselHovered(true);
+                  isHoveredRef.current = true;
+                }}
+                onMouseLeave={() => {
+                  setIsCarouselHovered(false);
+                  isHoveredRef.current = false;
+                }}
               >
                 {/* Left Button - Fade in/out on hover */}
                 <button
+                  type="button"
                   onClick={scrollLeft}
-                  className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-card/90 backdrop-blur-md shadow-lg rounded-full p-2.5 hover:bg-card hover:scale-110 transition-all duration-300 ${isCarouselHovered
-                    ? 'opacity-100 translate-x-0'
+                  className={`absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-card/90 backdrop-blur-md shadow-lg rounded-full p-2.5 hover:bg-card hover:scale-110 active:scale-95 transition-all duration-300 ${isCarouselHovered
+                    ? 'opacity-100 translate-x-0 pointer-events-auto'
                     : 'opacity-0 -translate-x-2 pointer-events-none'
                     }`}
+                  aria-label="Scroll left"
                 >
                   <ChevronLeft className="w-5 h-5 text-foreground" />
                 </button>
 
                 <div
-                  ref={scrollContainerRef}
-                  className="overflow-x-auto scrollbar-hide"
+                  className="overflow-hidden"
                   style={{
                     maskImage: "linear-gradient(to right, transparent, black 5%, black 95%, transparent)",
-                    scrollbarWidth: 'none',
-                    msOverflowStyle: 'none'
+                    WebkitMaskImage: "linear-gradient(to right, transparent, black 5%, black 95%, transparent)",
                   }}
                 >
                   <div
-                    ref={marqueeRef}
-                    className="flex gap-6 whitespace-nowrap py-2 animate-scroll"
-                    style={{
-                      animationPlayState: (isCarouselHovered || isScrollPaused) ? 'paused' : 'running'
-                    }}
-                    key={club.coreTeam.length}
+                    ref={trackRef}
+                    className="flex gap-6 whitespace-nowrap py-2 will-change-transform"
                   >
-                    {(club.coreTeam && club.coreTeam.length > 0
-                      ? [...club.coreTeam, ...club.coreTeam, ...club.coreTeam]
-                      : [...fallbackMembers, ...fallbackMembers]
-                    ).map((m, i) => {
-                      const initials = m.name.split(" ").map(s => s[0]).join("").toUpperCase().slice(0, 2);
+                    {/* Set 0 (Measurement & Left buffer) */}
+                    <div ref={set0Ref} className="flex gap-6 shrink-0">
+                      {fullSetMembers.map((m, i) => renderMemberCard(m, `set0-${i}`))}
+                    </div>
 
-                      return (
-                        <Card
-                          key={i}
-                          className="inline-flex flex-col justify-between min-w-[220px] max-w-[220px]
-                            backdrop-blur-sm border rounded-xl px-4 py-5
-                            hover:shadow-xl hover:-translate-y-[2px] hover:scale-[1.03]
-                            transition duration-200 cursor-pointer flex-shrink-0"
-                        >
-                          <div className="flex items-center justify-center mb-2">
-                            <div className="w-12 h-12 bg-primary text-primary-foreground flex items-center justify-center rounded-full text-sm font-emphasis shadow">
-                              {initials}
-                            </div>
-                          </div>
+                    {/* Set 1 (Main visible set) */}
+                    <div className="flex gap-6 shrink-0">
+                      {fullSetMembers.map((m, i) => renderMemberCard(m, `set1-${i}`))}
+                    </div>
 
-                          <div className="text-center space-y-1">
-                            <div className="font-emphasis tracking-tight text-[15px]">{m.name}</div>
-                            <Badge variant="outline" className="text-[10px] tracking-wide px-2 py-[1px]">
-                              {m.designation}
-                            </Badge>
-                            {(m.branch || m.year) && (
-                              <div className="text-[11px] text-muted-foreground mt-1 font-emphasis">
-                                {m.branch && m.year ? `${m.branch} ${m.year}` : m.branch || m.year}
-                              </div>
-                            )}
-                          </div>
-                        </Card>
-                      );
-                    })}
+                    {/* Set 2 (Right buffer) */}
+                    <div className="flex gap-6 shrink-0">
+                      {fullSetMembers.map((m, i) => renderMemberCard(m, `set2-${i}`))}
+                    </div>
                   </div>
                 </div>
 
                 {/* Right Button - Fade in/out on hover */}
                 <button
+                  type="button"
                   onClick={scrollRight}
-                  className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-card/90 backdrop-blur-md shadow-lg rounded-full p-2.5 hover:bg-card hover:scale-110 transition-all duration-300 ${isCarouselHovered
-                    ? 'opacity-100 translate-x-0'
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-card/90 backdrop-blur-md shadow-lg rounded-full p-2.5 hover:bg-card hover:scale-110 active:scale-95 transition-all duration-300 ${isCarouselHovered
+                    ? 'opacity-100 translate-x-0 pointer-events-auto'
                     : 'opacity-0 translate-x-2 pointer-events-none'
                     }`}
+                  aria-label="Scroll right"
                 >
                   <ChevronRight className="w-5 h-5 text-foreground" />
                 </button>
